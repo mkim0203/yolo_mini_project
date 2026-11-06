@@ -1,0 +1,10 @@
+/.vm
+/~$창고관리.pptx
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Environment
+.env
+.env.*

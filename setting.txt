@@ -1,0 +1,10 @@
+REM Python 3.12 가상환경 생성
+0. RAG_Project 폴더생성(위치가는 본인 학습폴더)
+1. py -3.12 -m venv .vm
+
+REM 가상환경 활성화
+2. .vm\Scripts\activate.bat
+
+REM 패키지 설치
+3. python -m pip install --upgrade pip
+4. python -m pip install -r fw.txt

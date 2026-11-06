@@ -1,0 +1,540 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>창고 현황</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 24px;
+    font-family: Arial, sans-serif;
+    background: #f4f6f9;
+    color: #263238;
+}
+
+.container {
+    max-width: 1200px;
+    margin: auto;
+}
+
+h2 {
+    margin-bottom: 20px;
+}
+
+.section {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.05);
+}
+
+.section-title {
+    font-weight: bold;
+    margin-bottom: 14px;
+}
+
+button {
+    border: 0;
+    padding: 10px 18px;
+    border-radius: 6px;
+    cursor: pointer;
+    background: #e9edf2;
+    color: #333;
+    margin: 3px;
+}
+
+button.active {
+    background: #2563eb;
+    color: white;
+}
+
+button.primary {
+    background: #2563eb;
+    color: white;
+}
+
+button.secondary {
+    background: #64748b;
+    color: white;
+}
+
+button:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+}
+
+/* 상태 표시 */
+.legend {
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+    font-size: 13px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+}
+
+.available { background: #22c55e; }
+.occupied { background: #eab308; }
+.inspect { background: #ef4444; }
+
+/* 슬롯 배치 */
+.slot-grid {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(70px, 1fr));
+    gap: 12px;
+}
+
+.slot {
+    min-height: 75px;
+    border-radius: 8px;
+    color: white;
+    font-weight: bold;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    border: 3px solid transparent;
+    margin: 0;
+}
+
+.slot.available { background: #22c55e; }
+.slot.occupied { background: #eab308; }
+.slot.inspect { background: #ef4444; }
+
+.slot.selected {
+    border-color: #1e40af;
+    box-shadow: 0 0 0 2px #93c5fd;
+}
+
+.slot small {
+    margin-top: 5px;
+    font-weight: normal;
+    font-size: 11px;
+}
+
+/* 상세 정보 */
+.detail {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 24px;
+}
+
+.product-image {
+    width: 180px;
+    height: 180px;
+    border-radius: 8px;
+    background: #f1f5f9;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.info-row {
+    margin-bottom: 12px;
+    font-size: 14px;
+}
+
+.info-row strong {
+    display: inline-block;
+    width: 110px;
+}
+
+.actions {
+    margin-top: 20px;
+}
+
+.message {
+    margin-top: 12px;
+    color: #2563eb;
+    font-size: 13px;
+}
+
+@media (max-width: 700px) {
+    body { padding: 12px; }
+
+    .slot-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .detail {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+    <h2>창고 현황</h2>
+
+    <!-- 동 선택 -->
+    <div class="section">
+        <div class="section-title">창고 동 선택</div>
+        <div id="dongButtons"></div>
+    </div>
+
+    <!-- Line 선택 -->
+    <div class="section">
+        <div class="section-title">Line 선택</div>
+        <div id="lineButtons"></div>
+    </div>
+
+    <!-- 슬롯 현황 -->
+    <div class="section">
+        <div class="section-title">
+            슬롯 현황
+            <span id="locationTitle"
+                  style="font-size:13px;color:#64748b;font-weight:normal;">
+            </span>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <span class="dot available"></span>사용 가능
+            </div>
+            <div class="legend-item">
+                <span class="dot occupied"></span>사용 중
+            </div>
+            <div class="legend-item">
+                <span class="dot inspect"></span>점검
+            </div>
+        </div>
+
+        <div id="slotGrid" class="slot-grid"></div>
+    </div>
+
+    <!-- 선택 슬롯 상세 -->
+    <div class="section">
+        <div class="section-title">슬롯 상세 정보</div>
+
+        <div class="detail">
+            <div class="product-image">
+                <img id="productImage"
+                     alt="상품 이미지"
+                     src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Crect width='180' height='180' fill='%23e2e8f0'/%3E%3Ctext x='90' y='95' text-anchor='middle' font-size='16' fill='%2364748b'%3ENo Image%3C/text%3E%3C/svg%3E">
+            </div>
+
+            <div>
+                <div class="info-row">
+                    <strong>슬롯 번호</strong>
+                    <span id="detailSlot">선택되지 않음</span>
+                </div>
+
+                <div class="info-row">
+                    <strong>상태</strong>
+                    <span id="detailStatus">-</span>
+                </div>
+
+                <div class="info-row">
+                    <strong>상품명</strong>
+                    <span id="detailInfo">-</span>
+                </div>
+
+                <div class="info-row">
+                    <strong>유통기한</strong>
+                    <span id="detailExpiry">-</span>
+                </div>
+
+                <div class="actions">
+                    <button class="primary" id="moveButton"
+                            onclick="startMove()" disabled>
+                        슬롯 이동
+                    </button>
+
+                    <button class="secondary" id="statusButton"
+                            onclick="changeStatus()" disabled>
+                        상태 변경
+                    </button>
+                </div>
+
+                <div id="message" class="message"></div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+// 샘플 데이터
+const warehouses = ["A동", "B동", "C동"];
+const lines = ["A", "B", "C", "D"];
+
+let selectedDong = "A동";
+let selectedLine = "A";
+let selectedSlot = null;
+let moveMode = false;
+
+// 샘플 슬롯 생성
+const slots = [];
+
+warehouses.forEach((dong, dongIndex) => {
+    lines.forEach((line, lineIndex) => {
+        for (let column = 1; column <= 6; column++) {
+            for (let floor = 1; floor <= 3; floor++) {
+
+                const id = slots.length + 1;
+
+                let status = "available";
+                let info = "";
+                let expiry = "";
+                let image = "";
+
+                if (id % 5 === 0) {
+                    status = "occupied";
+                    info = "샘플 상품 " + id;
+                    expiry = "2026-12-31";
+                    image = "";
+                }
+
+                if (id % 13 === 0) {
+                    status = "inspect";
+                    info = "";
+                    expiry = "";
+                }
+
+                slots.push({
+                    id,
+                    dong,
+                    line,
+                    column,
+                    floor,
+                    status,
+                    info,
+                    expiry,
+                    image
+                });
+            }
+        }
+    });
+});
+
+// 동 버튼
+function renderDongButtons() {
+    const container = document.getElementById("dongButtons");
+    container.innerHTML = "";
+
+    warehouses.forEach(dong => {
+        const button = document.createElement("button");
+        button.textContent = dong;
+
+        if (dong === selectedDong) {
+            button.classList.add("active");
+        }
+
+        button.onclick = () => {
+            selectedDong = dong;
+            selectedSlot = null;
+            moveMode = false;
+            renderAll();
+        };
+
+        container.appendChild(button);
+    });
+}
+
+// Line 버튼
+function renderLineButtons() {
+    const container = document.getElementById("lineButtons");
+    container.innerHTML = "";
+
+    lines.forEach(line => {
+        const button = document.createElement("button");
+        button.textContent = line + " Line";
+
+        if (line === selectedLine) {
+            button.classList.add("active");
+        }
+
+        button.onclick = () => {
+            selectedLine = line;
+            selectedSlot = null;
+            moveMode = false;
+            renderAll();
+        };
+
+        container.appendChild(button);
+    });
+}
+
+// 슬롯 표시
+function renderSlots() {
+    const grid = document.getElementById("slotGrid");
+    grid.innerHTML = "";
+
+    document.getElementById("locationTitle").textContent =
+        `(${selectedDong} / ${selectedLine} Line)`;
+
+    const filtered = slots.filter(s =>
+        s.dong === selectedDong &&
+        s.line === selectedLine
+    );
+
+    // 열 기준으로 층이 위에서부터 보이도록 정렬
+    filtered.sort((a, b) =>
+        a.column - b.column || b.floor - a.floor
+    );
+
+    filtered.forEach(slot => {
+        const button = document.createElement("button");
+        button.className = `slot ${slot.status}`;
+
+        if (selectedSlot?.id === slot.id) {
+            button.classList.add("selected");
+        }
+
+        button.innerHTML = `
+            ${slot.column}열 - ${slot.floor}층
+            <small>${getStatusName(slot.status)}</small>
+        `;
+
+        button.onclick = () => {
+            if (moveMode) {
+                moveSlot(slot);
+            } else {
+                selectedSlot = slot;
+                renderAll();
+            }
+        };
+
+        grid.appendChild(button);
+    });
+}
+
+function getStatusName(status) {
+    return {
+        available: "사용 가능",
+        occupied: "사용 중",
+        inspect: "점검"
+    }[status];
+}
+
+// 상세 정보 표시
+function renderDetail() {
+    const slot = selectedSlot;
+
+    document.getElementById("detailSlot").textContent =
+        slot ? `${slot.dong} / ${slot.line} Line / ${slot.column}열 / ${slot.floor}층` : "선택되지 않음";
+
+    document.getElementById("detailStatus").textContent =
+        slot ? getStatusName(slot.status) : "-";
+
+    document.getElementById("detailInfo").textContent =
+        slot?.info || "-";
+
+    document.getElementById("detailExpiry").textContent =
+        slot?.expiry || "-";
+
+    document.getElementById("productImage").src =
+        slot?.image ||
+        "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Crect width='180' height='180' fill='%23e2e8f0'/%3E%3Ctext x='90' y='95' text-anchor='middle' font-size='16' fill='%2364748b'%3ENo Image%3C/text%3E%3C/svg%3E";
+
+    document.getElementById("moveButton").disabled =
+        !slot || slot.status !== "occupied";
+
+    document.getElementById("statusButton").disabled =
+        !slot;
+
+    document.getElementById("message").textContent =
+        moveMode ? "이동할 빈 슬롯을 선택하세요." : "";
+}
+
+// 이동 모드 시작
+function startMove() {
+    if (!selectedSlot || selectedSlot.status !== "occupied") return;
+
+    moveMode = true;
+    document.getElementById("message").textContent =
+        "이동할 빈 슬롯을 선택하세요.";
+    renderSlots();
+}
+
+// 슬롯 이동
+function moveSlot(target) {
+    if (!selectedSlot) return;
+
+    if (target.id === selectedSlot.id) {
+        alert("현재 슬롯과 동일한 슬롯입니다.");
+        return;
+    }
+
+    if (target.status !== "available") {
+        alert("사용 가능한 슬롯만 이동할 수 있습니다.");
+        return;
+    }
+
+    // 상품 정보 이동
+    target.status = "occupied";
+    target.info = selectedSlot.info;
+    target.expiry = selectedSlot.expiry;
+    target.image = selectedSlot.image;
+
+    // 기존 슬롯 초기화
+    selectedSlot.status = "available";
+    selectedSlot.info = "";
+    selectedSlot.expiry = "";
+    selectedSlot.image = "";
+
+    selectedSlot = target;
+    moveMode = false;
+
+    renderAll();
+}
+
+// 상태 변경
+function changeStatus() {
+    if (!selectedSlot) return;
+
+    if (selectedSlot.status === "occupied") {
+        alert("사용 중인 슬롯은 먼저 반출 처리해야 합니다.");
+        return;
+    }
+
+    selectedSlot.status =
+        selectedSlot.status === "available"
+            ? "inspect"
+            : "available";
+
+    renderAll();
+}
+
+// 전체 화면 갱신
+function renderAll() {
+    renderDongButtons();
+    renderLineButtons();
+    renderSlots();
+    renderDetail();
+}
+
+// 초기 실행
+renderAll();
+</script>
+</body>
+</html>

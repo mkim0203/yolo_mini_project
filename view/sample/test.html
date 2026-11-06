@@ -1,0 +1,607 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Warehouse Management</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f3f5f8;
+    color: #263445;
+}
+
+.layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 220px;
+    background: #243449;
+    color: white;
+    padding: 25px 15px;
+}
+
+.sidebar h2 {
+    font-size: 20px;
+    margin: 0 0 35px;
+}
+
+.menu {
+    padding: 13px;
+    margin-bottom: 7px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: #cbd5e1;
+}
+
+.menu.active,
+.menu:hover {
+    background: #3b506b;
+    color: white;
+}
+
+/* Main */
+.main {
+    flex: 1;
+    padding: 25px;
+    min-width: 0;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.header h1 {
+    font-size: 25px;
+    margin: 0;
+}
+
+/* Selectors */
+.filters {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+select {
+    padding: 10px 15px;
+    border: 1px solid #d5dce5;
+    border-radius: 6px;
+    background: white;
+}
+
+/* Summary */
+.summary {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.summary-card {
+    background: white;
+    padding: 18px;
+    border-radius: 9px;
+    box-shadow: 0 2px 7px #00000008;
+}
+
+.summary-card span {
+    font-size: 13px;
+    color: #778397;
+}
+
+.summary-card strong {
+    display: block;
+    font-size: 27px;
+    margin-top: 10px;
+}
+
+.green { color: #279768; }
+.yellow { color: #d59a25; }
+.red { color: #dc5555; }
+
+/* Content */
+.content {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: 20px;
+}
+
+.panel {
+    background: white;
+    border-radius: 10px;
+    padding: 22px;
+    box-shadow: 0 2px 7px #00000008;
+    min-width: 0;
+}
+
+.panel h3 {
+    margin: 0 0 20px;
+}
+
+/* Legend */
+.legend {
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+    font-size: 12px;
+    margin-bottom: 25px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.legend-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+}
+
+/* 3D Rack */
+.scene {
+    min-height: 440px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: auto;
+    padding: 55px 25px;
+    background: #f7f9fc;
+    border-radius: 8px;
+}
+
+.rack {
+    display: grid;
+    grid-template-columns: repeat(6, 62px);
+    gap: 9px;
+    padding: 15px;
+    transform: perspective(900px)
+               rotateY(-22deg)
+               rotateX(8deg);
+    transform-style: preserve-3d;
+}
+
+/* Individual slot */
+.slot {
+    position: relative;
+    width: 62px;
+    height: 48px;
+    border: 1px solid #b7c3d1;
+    border-radius: 3px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: bold;
+    transition: .2s;
+    box-shadow: 3px 3px 0 #aebbc9;
+}
+
+.slot:hover {
+    transform: translateY(-7px) translateZ(12px);
+    z-index: 5;
+}
+
+.slot.used {
+    background: #b8e2cb;
+    color: #176443;
+}
+
+.slot.empty {
+    background: #ffebba;
+    color: #96640c;
+}
+
+.slot.inspect {
+    background: #f5c6c6;
+    color: #a52e2e;
+}
+
+.slot.selected {
+    outline: 3px solid #2879d0;
+    outline-offset: 2px;
+    z-index: 10;
+}
+
+/* Right detail */
+.detail-row {
+    padding: 13px 0;
+    border-bottom: 1px solid #edf0f4;
+}
+
+.detail-row span {
+    display: block;
+    font-size: 12px;
+    color: #8591a1;
+    margin-bottom: 7px;
+}
+
+.detail-row strong {
+    font-size: 14px;
+}
+
+.status-label {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 5px;
+    background: #e2f4e9;
+    color: #218052;
+    font-size: 12px;
+}
+
+button {
+    width: 100%;
+    border: 0;
+    padding: 12px;
+    border-radius: 6px;
+    background: #2879d0;
+    color: white;
+    cursor: pointer;
+    margin-top: 15px;
+}
+
+button:hover {
+    background: #1c62ad;
+}
+
+button:disabled {
+    background: #aeb8c4;
+    cursor: not-allowed;
+}
+
+@media(max-width: 1000px) {
+    .content {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media(max-width: 650px) {
+    .sidebar {
+        display: none;
+    }
+
+    .summary {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .main {
+        padding: 12px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="layout">
+
+    <aside class="sidebar">
+        <h2>Warehouse</h2>
+        <div class="menu">대시보드</div>
+        <div class="menu active">창고 현황</div>
+        <div class="menu">적재 요청</div>
+        <div class="menu">적재 요청 현황</div>
+        <div class="menu">반출 요청</div>
+        <div class="menu">만료 대상</div>
+        <div class="menu">적재·반출 이력</div>
+    </aside>
+
+    <main class="main">
+
+        <div class="header">
+            <h1>창고 현황</h1>
+            <span>Warehouse Management</span>
+        </div>
+
+        <div class="filters">
+            <select id="dong">
+                <option value="A">A동</option>
+                <option value="B">B동</option>
+                <option value="C">C동</option>
+            </select>
+
+            <select id="line">
+                <option value="A">A Line</option>
+                <option value="B">B Line</option>
+                <option value="C">C Line</option>
+                <option value="D">D Line</option>
+            </select>
+        </div>
+
+        <div class="summary">
+            <div class="summary-card">
+                <span>전체 슬롯</span>
+                <strong id="total">24</strong>
+            </div>
+            <div class="summary-card">
+                <span>사용 중</span>
+                <strong class="green" id="used">0</strong>
+            </div>
+            <div class="summary-card">
+                <span>빈 공간</span>
+                <strong class="yellow" id="empty">0</strong>
+            </div>
+            <div class="summary-card">
+                <span>점검 중</span>
+                <strong class="red" id="inspect">0</strong>
+            </div>
+        </div>
+
+        <div class="content">
+
+            <section class="panel">
+                <h3 id="rackTitle">A동 / A Line</h3>
+
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background:#b8e2cb"></div>
+                        사용 중
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background:#ffebba"></div>
+                        빈 공간
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background:#f5c6c6"></div>
+                        점검
+                    </div>
+                </div>
+
+                <div class="scene">
+                    <div class="rack" id="rack"></div>
+                </div>
+            </section>
+
+            <section class="panel">
+                <h3>슬롯 상세정보</h3>
+
+                <div class="detail-row">
+                    <span>위치</span>
+                    <strong id="location">슬롯을 선택하세요.</strong>
+                </div>
+
+                <div class="detail-row">
+                    <span>상태</span>
+                    <strong id="status">-</strong>
+                </div>
+
+                <div class="detail-row">
+                    <span>적재 물품</span>
+                    <strong id="product">-</strong>
+                </div>
+
+                <div class="detail-row">
+                    <span>유통기한</span>
+                    <strong id="expiry">-</strong>
+                </div>
+
+                <button id="inspectButton"
+                        onclick="toggleInspect()"
+                        disabled>
+                    점검 상태 변경
+                </button>
+            </section>
+
+        </div>
+    </main>
+</div>
+
+<script>
+
+// 예제 데이터
+// 실제 구현에서는 FastAPI API 응답으로 대체
+
+const slots = [];
+
+const dongSelect = document.getElementById("dong");
+const lineSelect = document.getElementById("line");
+
+let selectedSlot = null;
+
+// DB의 논리적 위치를 이용한 예제 데이터 생성
+function createSampleData() {
+
+    slots.length = 0;
+
+    for (let column = 1; column <= 6; column++) {
+
+        for (let floor = 1; floor <= 4; floor++) {
+
+            let status = "empty";
+            let product = null;
+            let expiry = null;
+
+            if ((column + floor) % 3 === 0) {
+                status = "used";
+                product = "사과";
+                expiry = "2026-11-20";
+            }
+            else if (column === 3 && floor === 2) {
+                status = "inspect";
+            }
+
+            slots.push({
+                slot_id: (column - 1) * 4 + floor,
+                dong: "A",
+                line_code: "A",
+                column_no: column,
+                floor: floor,
+                status: status,
+                product: product,
+                expiry: expiry
+            });
+        }
+    }
+}
+
+// 슬롯 렌더링
+function renderRack() {
+
+    const rack = document.getElementById("rack");
+
+    rack.innerHTML = "";
+    selectedSlot = null;
+
+    document.getElementById("location").textContent =
+        "슬롯을 선택하세요.";
+
+    document.getElementById("status").textContent = "-";
+    document.getElementById("product").textContent = "-";
+    document.getElementById("expiry").textContent = "-";
+    document.getElementById("inspectButton").disabled = true;
+
+    const dong = dongSelect.value;
+    const line = lineSelect.value;
+
+    const filtered = slots.filter(s =>
+        s.dong === dong && s.line_code === line
+    );
+
+    // Column별로 Floor 표시
+    // 화면의 위쪽이 높은 층
+    filtered.sort((a, b) =>
+        a.column_no - b.column_no || b.floor - a.floor
+    );
+
+    filtered.forEach(slot => {
+
+        const cell = document.createElement("div");
+
+        cell.className = `slot ${slot.status}`;
+
+        cell.textContent =
+            `${slot.column_no}-${slot.floor}`;
+
+        cell.title =
+            `${slot.column_no}번 Column / ${slot.floor}층`;
+
+        cell.onclick = () => selectSlot(slot);
+
+        rack.appendChild(cell);
+
+    });
+
+    updateSummary(filtered);
+
+    document.getElementById("rackTitle").textContent =
+        `${dong}동 / ${line} Line`;
+}
+
+// 통계 계산
+function updateSummary(data) {
+
+    const count = {
+        used: 0,
+        empty: 0,
+        inspect: 0
+    };
+
+    data.forEach(slot => count[slot.status]++);
+
+    document.getElementById("total").textContent = data.length;
+    document.getElementById("used").textContent = count.used;
+    document.getElementById("empty").textContent = count.empty;
+    document.getElementById("inspect").textContent = count.inspect;
+}
+
+// 슬롯 선택
+function selectSlot(slot) {
+
+    selectedSlot = slot;
+
+    document.querySelectorAll(".slot").forEach(el =>
+        el.classList.remove("selected")
+    );
+
+    const index = slots
+        .filter(s =>
+            s.dong === dongSelect.value &&
+            s.line_code === lineSelect.value
+        )
+        .sort((a, b) =>
+            a.column_no - b.column_no || b.floor - a.floor
+        )
+        .indexOf(slot);
+
+    document.querySelectorAll(".slot")[index]
+        .classList.add("selected");
+
+    const statusText = {
+        used: "사용 중",
+        empty: "빈 공간",
+        inspect: "점검 중"
+    };
+
+    document.getElementById("location").textContent =
+        `${slot.dong}동 / ${slot.line_code} Line / ` +
+        `${slot.column_no}번 / ${slot.floor}층`;
+
+    document.getElementById("status").textContent =
+        statusText[slot.status];
+
+    document.getElementById("product").textContent =
+        slot.product || "-";
+
+    document.getElementById("expiry").textContent =
+        slot.expiry || "-";
+
+    document.getElementById("inspectButton").disabled =
+        slot.status === "used";
+
+    document.getElementById("inspectButton").textContent =
+        slot.status === "inspect"
+            ? "점검 해제"
+            : "점검 상태 변경";
+}
+
+// 점검 상태 변경
+function toggleInspect() {
+
+    if (!selectedSlot || selectedSlot.status === "used") {
+        return;
+    }
+
+    selectedSlot.status =
+        selectedSlot.status === "inspect"
+            ? "empty"
+            : "inspect";
+
+    const dong = dongSelect.value;
+    const line = lineSelect.value;
+
+    renderRack();
+
+    // 실제 구현에서는 여기서 API 호출
+    // PUT /slots/{slot_id}
+
+    alert("예제 화면에서 상태가 변경되었습니다.");
+}
+
+// 동 / Line 변경
+dongSelect.addEventListener("change", renderRack);
+lineSelect.addEventListener("change", renderRack);
+
+// 최초 실행
+createSampleData();
+renderRack();
+
+</script>
+
+</body>
+</html>

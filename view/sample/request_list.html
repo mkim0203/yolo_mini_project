@@ -1,0 +1,437 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>적재 요청 현황</title>
+<style>
+    * { box-sizing: border-box; }
+
+    body {
+        margin: 0;
+        font-family: Arial, "Malgun Gothic", sans-serif;
+        background: #f4f6fa;
+        color: #263248;
+    }
+
+    .sidebar {
+        position: fixed;
+        width: 220px;
+        height: 100vh;
+        background: #17243b;
+        color: white;
+        padding: 25px 15px;
+    }
+
+    .logo {
+        font-size: 21px;
+        font-weight: bold;
+        padding: 5px 12px 35px;
+    }
+
+    .menu a {
+        display: block;
+        color: #bdc8d9;
+        text-decoration: none;
+        padding: 13px 15px;
+        margin-bottom: 5px;
+        border-radius: 6px;
+        font-size: 14px;
+    }
+
+    .menu a:hover,
+    .menu a.active {
+        background: #2d4264;
+        color: white;
+    }
+
+    .main {
+        margin-left: 220px;
+        padding: 30px;
+    }
+
+    .header {
+        margin-bottom: 25px;
+    }
+
+    .header h2 {
+        margin: 0 0 7px;
+        font-size: 25px;
+    }
+
+    .header span {
+        color: #8993a4;
+        font-size: 13px;
+    }
+
+    .summary {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .summary-card {
+        background: white;
+        border-radius: 9px;
+        padding: 18px 22px;
+        flex: 1;
+        box-shadow: 0 2px 7px rgba(0,0,0,.04);
+    }
+
+    .summary-card .label {
+        color: #8993a4;
+        font-size: 13px;
+    }
+
+    .summary-card .value {
+        font-size: 25px;
+        font-weight: bold;
+        margin-top: 8px;
+    }
+
+    .content {
+        display: grid;
+        grid-template-columns: minmax(500px, 1.6fr) minmax(300px, 1fr);
+        gap: 20px;
+        align-items: start;
+    }
+
+    .panel {
+        background: white;
+        border-radius: 9px;
+        padding: 22px;
+        box-shadow: 0 2px 7px rgba(0,0,0,.04);
+    }
+
+    .panel h3 {
+        margin: 0 0 18px;
+        font-size: 17px;
+    }
+
+    .table-wrap {
+        overflow-x: auto;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+        white-space: nowrap;
+    }
+
+    th {
+        background: #f5f7fa;
+        color: #68758a;
+        font-weight: 600;
+        padding: 13px 10px;
+        border-bottom: 1px solid #e6eaf0;
+        text-align: center;
+    }
+
+    td {
+        padding: 14px 10px;
+        border-bottom: 1px solid #edf0f4;
+        text-align: center;
+    }
+
+    tbody tr {
+        cursor: pointer;
+    }
+
+    tbody tr:hover {
+        background: #f6f8fc;
+    }
+
+    tbody tr.selected {
+        background: #eaf1ff;
+    }
+
+    .product-name {
+        text-align: left;
+        font-weight: 600;
+    }
+
+    .request-id {
+        color: #526b94;
+        font-weight: 600;
+    }
+
+    .detail-image {
+        width: 100%;
+        height: 230px;
+        border-radius: 8px;
+        background: #f3f5f8;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+        margin-bottom: 20px;
+    }
+
+    .detail-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    .no-image {
+        color: #9aa4b2;
+        font-size: 14px;
+    }
+
+    .detail-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 13px 0;
+        border-bottom: 1px solid #edf0f4;
+        font-size: 14px;
+        gap: 15px;
+    }
+
+    .detail-row .label {
+        color: #8993a4;
+        flex-shrink: 0;
+    }
+
+    .detail-row .value {
+        font-weight: 600;
+        text-align: right;
+        word-break: break-word;
+    }
+
+    .empty-detail {
+        text-align: center;
+        color: #9aa4b2;
+        padding: 70px 10px;
+        font-size: 14px;
+    }
+
+    @media (max-width: 1100px) {
+        .content {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 700px) {
+        .sidebar {
+            width: 170px;
+        }
+        .main {
+            margin-left: 170px;
+            padding: 20px;
+        }
+        .summary {
+            flex-wrap: wrap;
+        }
+        .summary-card {
+            min-width: 130px;
+        }
+    }
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+    <div class="logo">Warehouse</div>
+    <nav class="menu">
+        <a href="#">대시보드</a>
+        <a href="#">창고 현황</a>
+        <a href="#">적재 요청</a>
+        <a href="#" class="active">적재 요청 현황</a>
+        <a href="#">반출 요청</a>
+        <a href="#">만료 대상</a>
+        <a href="#">적재·반출 이력</a>
+    </nav>
+</aside>
+
+<main class="main">
+    <div class="header">
+        <h2>적재 요청 현황</h2>
+        <span>Warehouse Management</span>
+    </div>
+
+    <section class="summary">
+        <div class="summary-card">
+            <div class="label">전체 요청</div>
+            <div class="value" id="totalCount">0</div>
+        </div>
+        <div class="summary-card">
+            <div class="label">선택된 요청</div>
+            <div class="value" id="selectedCount">-</div>
+        </div>
+    </section>
+
+    <section class="content">
+        <!-- 요청 목록 -->
+        <div class="panel">
+            <h3>적재 요청 목록</h3>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>요청 번호</th>
+                            <th>상품 정보</th>
+                            <th>유통기한</th>
+                            <th>요청일</th>
+                        </tr>
+                    </thead>
+                    <tbody id="requestList"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 상품 상세 정보 -->
+        <div class="panel">
+            <h3>상품 상세 정보</h3>
+
+            <div id="detailContent">
+                <div class="empty-detail">
+                    목록에서 상품을 선택해주세요.
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<script>
+    // 화면 확인용 샘플 데이터
+    // 실제 API 연동 시 이 배열을 API 응답 데이터로 교체
+    const requestData = [
+        {
+            request_id: 1001,
+            info: "냉동 만두 1kg",
+            expiry_date: "2027-03-15",
+            create_date: "2026-11-01",
+            image_type: "image/svg+xml",
+            image_data: createSampleImage("만두", "#e8f0ff")
+        },
+        {
+            request_id: 1002,
+            info: "사과 주스 1L",
+            expiry_date: "2027-01-20",
+            create_date: "2026-11-02",
+            image_type: "image/svg+xml",
+            image_data: createSampleImage("주스", "#fff0e5")
+        },
+        {
+            request_id: 1003,
+            info: "쌀 10kg",
+            expiry_date: "2027-08-10",
+            create_date: "2026-11-03",
+            image_type: "image/svg+xml",
+            image_data: createSampleImage("쌀", "#e9f5e9")
+        }
+    ];
+
+    // 샘플 이미지 생성
+    function createSampleImage(text, background) {
+        const svg = `
+            <svg xmlns="http://www.w3.org/2000/svg" width="400" height="300">
+                <rect width="100%" height="100%" fill="${background}"/>
+                <rect x="130" y="55" width="140" height="150"
+                      rx="12" fill="#ffffff" stroke="#ccd4df" stroke-width="3"/>
+                <text x="200" y="140" text-anchor="middle"
+                      font-size="28" fill="#526b94">${text}</text>
+                <text x="200" y="245" text-anchor="middle"
+                      font-size="16" fill="#8993a4">Sample Image</text>
+            </svg>
+        `;
+
+        return "data:image/svg+xml;charset=utf-8," +
+               encodeURIComponent(svg);
+    }
+
+    let selectedRequestId = null;
+
+    // 요청 목록 출력
+    function renderRequestList() {
+        const tbody = document.getElementById("requestList");
+
+        tbody.innerHTML = requestData.map(item => `
+            <tr data-id="${item.request_id}"
+                onclick="selectRequest(${item.request_id})">
+                <td class="request-id">#${item.request_id}</td>
+                <td class="product-name">${item.info}</td>
+                <td>${item.expiry_date}</td>
+                <td>${item.create_date}</td>
+            </tr>
+        `).join("");
+
+        document.getElementById("totalCount").textContent =
+            requestData.length;
+    }
+
+    // 목록 선택
+    function selectRequest(requestId) {
+        const item = requestData.find(
+            x => x.request_id === requestId
+        );
+
+        if (!item) return;
+
+        selectedRequestId = requestId;
+
+        // 선택 행 표시
+        document.querySelectorAll("#requestList tr").forEach(row => {
+            row.classList.toggle(
+                "selected",
+                Number(row.dataset.id) === requestId
+            );
+        });
+
+        document.getElementById("selectedCount").textContent =
+            `#${item.request_id}`;
+
+        renderDetail(item);
+    }
+
+    // 상세 정보 및 이미지 출력
+    function renderDetail(item) {
+        const imageUrl = item.image_data || "";
+
+        document.getElementById("detailContent").innerHTML = `
+            <div class="detail-image">
+                ${
+                    imageUrl
+                    ? `<img src="${imageUrl}" alt="상품 이미지"
+                            onerror="this.style.display='none';
+                            this.parentElement.innerHTML=
+                            '<div class=&quot;no-image&quot;>이미지를 불러올 수 없습니다.</div>';">`
+                    : `<div class="no-image">등록된 이미지가 없습니다.</div>`
+                }
+            </div>
+
+            <div class="detail-row">
+                <span class="label">요청 번호</span>
+                <span class="value">#${item.request_id}</span>
+            </div>
+
+            <div class="detail-row">
+                <span class="label">상품 정보</span>
+                <span class="value">${item.info}</span>
+            </div>
+
+            <div class="detail-row">
+                <span class="label">유통기한</span>
+                <span class="value">${item.expiry_date}</span>
+            </div>
+
+            <div class="detail-row">
+                <span class="label">요청일</span>
+                <span class="value">${item.create_date}</span>
+            </div>
+
+            <div class="detail-row">
+                <span class="label">이미지 형식</span>
+                <span class="value">${item.image_type || "-"}</span>
+            </div>
+        `;
+    }
+
+    // 초기 실행
+    renderRequestList();
+</script>
+
+</body>
+</html>

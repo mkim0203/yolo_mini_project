@@ -1,0 +1,863 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Warehouse Management</title>
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f3f5f8;
+    color: #263445;
+}
+
+.layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 220px;
+    flex-shrink: 0;
+    background: #243449;
+    color: white;
+    padding: 25px 15px;
+}
+
+.sidebar h2 {
+    font-size: 20px;
+    margin: 0 0 35px;
+}
+
+.menu {
+    padding: 13px;
+    margin-bottom: 7px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: #cbd5e1;
+}
+
+.menu.active, .menu:hover {
+    background: #3b506b;
+    color: white;
+}
+
+/* Main */
+.main {
+    flex: 1;
+    padding: 25px;
+    min-width: 0;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.header h1 {
+    font-size: 25px;
+    margin: 0;
+}
+
+/* Select buttons */
+.filter-section {
+    background: white;
+    padding: 16px 20px;
+    border-radius: 9px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 7px #00000008;
+}
+
+.filter-title {
+    font-size: 13px;
+    color: #778397;
+    margin-bottom: 10px;
+}
+
+.filter-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.filter-btn {
+    width: auto;
+    margin: 0;
+    padding: 9px 22px;
+    background: #edf1f6;
+    color: #526174;
+    border: 1px solid #e0e6ee;
+}
+
+.filter-btn:hover {
+    background: #dce7f5;
+    color: #245d9c;
+}
+
+.filter-btn.active {
+    background: #2879d0;
+    border-color: #2879d0;
+    color: white;
+}
+
+/* Summary */
+.summary {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.summary-card {
+    background: white;
+    padding: 18px;
+    border-radius: 9px;
+    box-shadow: 0 2px 7px #00000008;
+}
+
+.summary-card span {
+    font-size: 13px;
+    color: #778397;
+}
+
+.summary-card strong {
+    display: block;
+    font-size: 27px;
+    margin-top: 10px;
+}
+
+.green { color: #279768; }
+.yellow { color: #d59a25; }
+.red { color: #dc5555; }
+
+/* Content */
+.content {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 20px;
+}
+
+.panel {
+    background: white;
+    border-radius: 10px;
+    padding: 22px;
+    box-shadow: 0 2px 7px #00000008;
+    min-width: 0;
+}
+
+.panel h3 {
+    margin: 0 0 20px;
+}
+
+/* Legend */
+.legend {
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+    font-size: 12px;
+    margin-bottom: 20px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.legend-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+}
+
+/* 2D Rack */
+.scene {
+    min-height: 350px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: auto;
+    padding: 25px;
+    background: #f7f9fc;
+    border-radius: 8px;
+}
+
+.rack {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(65px, 85px));
+    gap: 10px;
+    width: max-content;
+    max-width: 100%;
+}
+
+/* Individual slot */
+.slot {
+    position: relative;
+    min-width: 65px;
+    height: 65px;
+    border: 2px solid transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    transition: .15s;
+    margin: 0;
+    padding: 5px;
+}
+
+.slot:hover {
+    filter: brightness(.95);
+    transform: translateY(-2px);
+}
+
+.slot.used {
+    background: #b8e2cb;
+    color: #176443;
+}
+
+.slot.empty {
+    background: #ffebba;
+    color: #96640c;
+}
+
+.slot.inspect {
+    background: #f5c6c6;
+    color: #a52e2e;
+}
+
+.slot.selected {
+    border-color: #2879d0;
+    box-shadow: 0 0 0 2px #2879d033;
+}
+
+.slot.move-target {
+    border: 2px dashed #2879d0;
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.slot small {
+    margin-top: 5px;
+    font-size: 10px;
+    font-weight: normal;
+}
+
+/* Right detail */
+.detail-image {
+    width: 100%;
+    height: 180px;
+    background: #f3f5f8;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.detail-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.no-image {
+    color: #9aa5b4;
+    font-size: 13px;
+}
+
+.detail-row {
+    padding: 12px 0;
+    border-bottom: 1px solid #edf0f4;
+}
+
+.detail-row span {
+    display: block;
+    font-size: 12px;
+    color: #8591a1;
+    margin-bottom: 7px;
+}
+
+.detail-row strong {
+    font-size: 14px;
+}
+
+.status-label {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 5px;
+    background: #e2f4e9;
+    color: #218052;
+    font-size: 12px;
+}
+
+.action-buttons {
+    margin-top: 15px;
+}
+
+.action-buttons button {
+    margin-top: 8px;
+}
+
+button {
+    border: 0;
+    padding: 12px;
+    border-radius: 6px;
+    background: #2879d0;
+    color: white;
+    cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+    background: #1c62ad;
+}
+
+button:disabled {
+    background: #aeb8c4;
+    cursor: not-allowed;
+}
+
+.move-button { background: #64748b; }
+.move-button:hover:not(:disabled) { background: #475569; }
+
+.cancel-button { background: #dc5555; }
+
+.message {
+    margin-top: 12px;
+    color: #2879d0;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+@media(max-width: 1000px) {
+    .content { grid-template-columns: 1fr; }
+}
+
+@media(max-width: 650px) {
+    .sidebar { display: none; }
+    .summary { grid-template-columns: repeat(2, 1fr); }
+    .main { padding: 12px; }
+    .scene { justify-content: flex-start; }
+}
+</style>
+</head>
+
+<body>
+
+<div class="layout">
+
+    <aside class="sidebar">
+        <h2>Warehouse</h2>
+        <div class="menu">대시보드</div>
+        <div class="menu active">창고 현황</div>
+        <div class="menu">적재 요청</div>
+        <div class="menu">적재 요청 현황</div>
+        <div class="menu">반출 요청</div>
+        <div class="menu">만료 대상</div>
+        <div class="menu">적재·반출 이력</div>
+    </aside>
+
+    <main class="main">
+
+        <div class="header">
+            <h1>창고 현황</h1>
+            <span>Warehouse Management</span>
+        </div>
+
+        <!-- 동 선택 -->
+        <div class="filter-section">
+            <div class="filter-title">창고 동 선택</div>
+            <div class="filter-buttons" id="dongButtons"></div>
+        </div>
+
+        <!-- Line 선택 -->
+        <div class="filter-section">
+            <div class="filter-title">Line 선택</div>
+            <div class="filter-buttons" id="lineButtons"></div>
+        </div>
+
+        <!-- Summary -->
+        <div class="summary">
+            <div class="summary-card">
+                <span>전체 슬롯</span>
+                <strong id="total">0</strong>
+            </div>
+            <div class="summary-card">
+                <span>사용 중</span>
+                <strong class="green" id="used">0</strong>
+            </div>
+            <div class="summary-card">
+                <span>빈 공간</span>
+                <strong class="yellow" id="empty">0</strong>
+            </div>
+            <div class="summary-card">
+                <span>점검 중</span>
+                <strong class="red" id="inspect">0</strong>
+            </div>
+        </div>
+
+        <div class="content">
+
+            <!-- Rack -->
+            <section class="panel">
+                <h3 id="rackTitle">A동 / A Line</h3>
+
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background:#b8e2cb"></div>
+                        사용 중
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background:#ffebba"></div>
+                        빈 공간
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background:#f5c6c6"></div>
+                        점검
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background:#dbeafe;border:1px solid #2879d0"></div>
+                        이동 대상
+                    </div>
+                </div>
+
+                <div class="scene">
+                    <div class="rack" id="rack"></div>
+                </div>
+            </section>
+
+            <!-- Detail -->
+            <section class="panel">
+                <h3>슬롯 상세정보</h3>
+
+                <div class="detail-image">
+                    <img id="productImage" alt="상품 이미지" hidden>
+                    <span id="noImage" class="no-image">이미지가 없습니다.</span>
+                </div>
+
+                <div class="detail-row">
+                    <span>위치</span>
+                    <strong id="location">슬롯을 선택하세요.</strong>
+                </div>
+
+                <div class="detail-row">
+                    <span>상태</span>
+                    <strong id="status">-</strong>
+                </div>
+
+                <div class="detail-row">
+                    <span>적재 물품</span>
+                    <strong id="product">-</strong>
+                </div>
+
+                <div class="detail-row">
+                    <span>유통기한</span>
+                    <strong id="expiry">-</strong>
+                </div>
+
+                <div class="action-buttons">
+                    <button id="moveButton"
+                            class="move-button"
+                            onclick="startMove()"
+                            disabled>
+                        슬롯 이동
+                    </button>
+
+                    <button id="inspectButton"
+                            onclick="toggleInspect()"
+                            disabled>
+                        점검 상태 변경
+                    </button>
+
+                    <button id="cancelMoveButton"
+                            class="cancel-button"
+                            onclick="cancelMove()"
+                            hidden>
+                        이동 취소
+                    </button>
+                </div>
+
+                <div id="message" class="message"></div>
+            </section>
+
+        </div>
+    </main>
+</div>
+
+<script>
+
+// --------------------------------------------------
+// 샘플 데이터
+// 실제 구현에서는 FastAPI API 응답으로 대체
+// --------------------------------------------------
+
+const warehouses = ["A", "B", "C"];
+const lines = ["A", "B", "C", "D"];
+
+const slots = [];
+
+let selectedDong = "A";
+let selectedLine = "A";
+let selectedSlot = null;
+let moveMode = false;
+
+// 이미지가 없는 경우 기본 이미지 표시
+const noImageData =
+    "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Crect width='180' height='180' fill='%23e2e8f0'/%3E%3Ctext x='90' y='95' text-anchor='middle' font-size='14' fill='%2364748b'%3ENo Image%3C/text%3E%3C/svg%3E";
+
+// 샘플 데이터 생성
+function createSampleData() {
+
+    let id = 1;
+
+    warehouses.forEach(dong => {
+        lines.forEach(line => {
+
+            for (let column = 1; column <= 6; column++) {
+                for (let floor = 1; floor <= 4; floor++) {
+
+                    let status = "empty";
+                    let product = null;
+                    let expiry = null;
+                    let image = null;
+
+                    if (id % 5 === 0) {
+                        status = "used";
+                        product = "사과";
+                        expiry = "2026-11-20";
+                    }
+
+                    if (id % 13 === 0) {
+                        status = "inspect";
+                        product = null;
+                        expiry = null;
+                    }
+
+                    slots.push({
+                        slot_id: id,
+                        dong: dong,
+                        line_code: line,
+                        column_no: column,
+                        floor: floor,
+                        status: status,
+                        product: product,
+                        expiry: expiry,
+                        image: image
+                    });
+
+                    id++;
+                }
+            }
+        });
+    });
+}
+
+// --------------------------------------------------
+// 동 / Line 버튼
+// --------------------------------------------------
+
+function renderDongButtons() {
+
+    const container = document.getElementById("dongButtons");
+    container.innerHTML = "";
+
+    warehouses.forEach(dong => {
+
+        const button = document.createElement("button");
+
+        button.className =
+            "filter-btn" + (selectedDong === dong ? " active" : "");
+
+        button.textContent = dong + "동";
+
+        button.onclick = () => {
+            selectedDong = dong;
+            selectedSlot = null;
+            moveMode = false;
+            renderAll();
+        };
+
+        container.appendChild(button);
+    });
+}
+
+function renderLineButtons() {
+
+    const container = document.getElementById("lineButtons");
+    container.innerHTML = "";
+
+    lines.forEach(line => {
+
+        const button = document.createElement("button");
+
+        button.className =
+            "filter-btn" + (selectedLine === line ? " active" : "");
+
+        button.textContent = line + " Line";
+
+        button.onclick = () => {
+            selectedLine = line;
+            selectedSlot = null;
+            moveMode = false;
+            renderAll();
+        };
+
+        container.appendChild(button);
+    });
+}
+
+// --------------------------------------------------
+// 슬롯 렌더링
+// --------------------------------------------------
+
+function renderRack() {
+
+    const rack = document.getElementById("rack");
+    rack.innerHTML = "";
+
+    const filtered = getCurrentSlots();
+
+    // Column별, Floor 높은 순서
+    filtered.sort((a, b) =>
+        a.column_no - b.column_no || b.floor - a.floor
+    );
+
+    filtered.forEach(slot => {
+
+        const cell = document.createElement("button");
+
+        cell.className = `slot ${slot.status}`;
+
+        if (selectedSlot && selectedSlot.slot_id === slot.slot_id) {
+            cell.classList.add("selected");
+        }
+
+        if (moveMode && slot.status === "empty") {
+            cell.classList.add("move-target");
+        }
+
+        cell.innerHTML = `
+            ${slot.column_no}열
+            <small>${slot.floor}층</small>
+        `;
+
+        cell.title =
+            `${slot.column_no}열 / ${slot.floor}층`;
+
+        cell.onclick = () => onSlotClick(slot);
+
+        rack.appendChild(cell);
+    });
+
+    document.getElementById("rackTitle").textContent =
+        `${selectedDong}동 / ${selectedLine} Line`;
+
+    updateSummary(filtered);
+}
+
+function getCurrentSlots() {
+    return slots.filter(slot =>
+        slot.dong === selectedDong &&
+        slot.line_code === selectedLine
+    );
+}
+
+// --------------------------------------------------
+// 통계
+// --------------------------------------------------
+
+function updateSummary(data) {
+
+    const count = {
+        used: 0,
+        empty: 0,
+        inspect: 0
+    };
+
+    data.forEach(slot => {
+        count[slot.status]++;
+    });
+
+    document.getElementById("total").textContent = data.length;
+    document.getElementById("used").textContent = count.used;
+    document.getElementById("empty").textContent = count.empty;
+    document.getElementById("inspect").textContent = count.inspect;
+}
+
+// --------------------------------------------------
+// 슬롯 선택 및 이동
+// --------------------------------------------------
+
+function onSlotClick(slot) {
+
+    if (moveMode) {
+        moveSlot(slot);
+        return;
+    }
+
+    selectedSlot = slot;
+    renderAll();
+}
+
+function startMove() {
+
+    if (!selectedSlot || selectedSlot.status !== "used") {
+        return;
+    }
+
+    moveMode = true;
+
+    renderAll();
+
+    document.getElementById("message").textContent =
+        "이동할 빈 슬롯을 선택하세요.";
+}
+
+function cancelMove() {
+
+    moveMode = false;
+    renderAll();
+}
+
+function moveSlot(target) {
+
+    if (!selectedSlot) return;
+
+    if (target.slot_id === selectedSlot.slot_id) {
+        return;
+    }
+
+    if (target.status !== "empty") {
+        alert("빈 슬롯만 이동 대상으로 선택할 수 있습니다.");
+        return;
+    }
+
+    // 상품 정보를 대상 슬롯으로 이동
+    target.status = "used";
+    target.product = selectedSlot.product;
+    target.expiry = selectedSlot.expiry;
+    target.image = selectedSlot.image;
+
+    // 기존 슬롯 비우기
+    selectedSlot.status = "empty";
+    selectedSlot.product = null;
+    selectedSlot.expiry = null;
+    selectedSlot.image = null;
+
+    selectedSlot = target;
+    moveMode = false;
+
+    renderAll();
+
+    document.getElementById("message").textContent =
+        "샘플 데이터에서 슬롯 이동이 완료되었습니다.";
+}
+
+// --------------------------------------------------
+// 상세 정보
+// --------------------------------------------------
+
+function renderDetail() {
+
+    const slot = selectedSlot;
+
+    const statusText = {
+        used: "사용 중",
+        empty: "빈 공간",
+        inspect: "점검 중"
+    };
+
+    document.getElementById("location").textContent =
+        slot
+            ? `${slot.dong}동 / ${slot.line_code} Line / ${slot.column_no}열 / ${slot.floor}층`
+            : "슬롯을 선택하세요.";
+
+    document.getElementById("status").textContent =
+        slot ? statusText[slot.status] : "-";
+
+    document.getElementById("product").textContent =
+        slot?.product || "-";
+
+    document.getElementById("expiry").textContent =
+        slot?.expiry || "-";
+
+    const image = document.getElementById("productImage");
+    const noImage = document.getElementById("noImage");
+
+    if (slot?.image) {
+        image.src = slot.image;
+        image.hidden = false;
+        noImage.hidden = true;
+    } else {
+        image.hidden = true;
+        noImage.hidden = false;
+    }
+
+    document.getElementById("moveButton").disabled =
+        !slot || slot.status !== "used" || moveMode;
+
+    document.getElementById("inspectButton").disabled =
+        !slot || slot.status === "used" || moveMode;
+
+    document.getElementById("inspectButton").textContent =
+        slot?.status === "inspect"
+            ? "점검 해제"
+            : "점검 상태 변경";
+
+    document.getElementById("cancelMoveButton").hidden =
+        !moveMode;
+
+    if (!moveMode) {
+        document.getElementById("message").textContent = "";
+    }
+}
+
+// --------------------------------------------------
+// 점검 상태 변경
+// --------------------------------------------------
+
+function toggleInspect() {
+
+    if (!selectedSlot || selectedSlot.status === "used") {
+        return;
+    }
+
+    selectedSlot.status =
+        selectedSlot.status === "inspect"
+            ? "empty"
+            : "inspect";
+
+    renderAll();
+}
+
+// --------------------------------------------------
+// 전체 화면 갱신
+// --------------------------------------------------
+
+function renderAll() {
+    renderDongButtons();
+    renderLineButtons();
+    renderRack();
+    renderDetail();
+}
+
+// 최초 실행
+createSampleData();
+renderAll();
+
+</script>
+
+</body>
+</html>

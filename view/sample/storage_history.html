@@ -1,0 +1,428 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>반출 요청 이력</title>
+
+<style>
+    * { box-sizing: border-box; }
+
+    body {
+        margin: 0;
+        font-family: Arial, "Malgun Gothic", sans-serif;
+        background: #f4f6fa;
+        color: #263248;
+    }
+
+    .sidebar {
+        position: fixed;
+        width: 220px;
+        height: 100vh;
+        background: #17243b;
+        color: white;
+        padding: 25px 15px;
+    }
+
+    .logo {
+        font-size: 21px;
+        font-weight: bold;
+        padding: 5px 12px 35px;
+    }
+
+    .menu a {
+        display: block;
+        color: #bdc8d9;
+        text-decoration: none;
+        padding: 13px 15px;
+        margin-bottom: 5px;
+        border-radius: 6px;
+        font-size: 14px;
+    }
+
+    .menu a:hover,
+    .menu a.active {
+        background: #2d4264;
+        color: white;
+    }
+
+    .main {
+        margin-left: 220px;
+        padding: 30px;
+    }
+
+    .header {
+        margin-bottom: 25px;
+    }
+
+    .header h2 {
+        margin: 0 0 7px;
+        font-size: 25px;
+    }
+
+    .header span {
+        color: #8993a4;
+        font-size: 13px;
+    }
+
+    .summary {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .summary-card {
+        background: white;
+        border-radius: 9px;
+        padding: 18px 22px;
+        flex: 1;
+        box-shadow: 0 2px 7px rgba(0,0,0,.04);
+    }
+
+    .summary-card .label {
+        color: #8993a4;
+        font-size: 13px;
+    }
+
+    .summary-card .value {
+        font-size: 25px;
+        font-weight: bold;
+        margin-top: 8px;
+    }
+
+    .panel {
+        background: white;
+        border-radius: 9px;
+        padding: 22px;
+        box-shadow: 0 2px 7px rgba(0,0,0,.04);
+        margin-bottom: 20px;
+    }
+
+    .panel h3 {
+        margin: 0 0 18px;
+        font-size: 17px;
+    }
+
+    .search-area {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .search-area label {
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .search-area input {
+        height: 38px;
+        padding: 0 10px;
+        border: 1px solid #dce1e9;
+        border-radius: 5px;
+        font-size: 14px;
+    }
+
+    .btn {
+        height: 38px;
+        padding: 0 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .btn-primary {
+        background: #315b96;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #244878;
+    }
+
+    .btn-reset {
+        background: #e9edf3;
+        color: #526078;
+    }
+
+    .table-wrap {
+        overflow-x: auto;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+        white-space: nowrap;
+    }
+
+    th {
+        background: #f5f7fa;
+        color: #68758a;
+        font-weight: 600;
+        padding: 14px 10px;
+        border-bottom: 1px solid #e6eaf0;
+        text-align: center;
+    }
+
+    td {
+        padding: 14px 10px;
+        border-bottom: 1px solid #edf0f4;
+        text-align: center;
+    }
+
+    tbody tr:hover {
+        background: #f6f8fc;
+    }
+
+    .history-id {
+        color: #526b94;
+        font-weight: 600;
+    }
+
+    .empty-row {
+        padding: 40px 10px;
+        color: #9aa4b2;
+    }
+
+    .result-info {
+        color: #8993a4;
+        font-size: 13px;
+        margin-bottom: 12px;
+    }
+
+    @media (max-width: 700px) {
+        .sidebar {
+            width: 170px;
+        }
+
+        .main {
+            margin-left: 170px;
+            padding: 20px;
+        }
+
+        .summary {
+            flex-wrap: wrap;
+        }
+
+        .summary-card {
+            min-width: 130px;
+        }
+    }
+</style>
+</head>
+
+<body>
+
+<aside class="sidebar">
+    <div class="logo">Warehouse</div>
+
+    <nav class="menu">
+        <a href="#">대시보드</a>
+        <a href="#">창고 현황</a>
+        <a href="#">적재 요청</a>
+        <a href="#">적재 요청 현황</a>
+        <a href="#">반출 요청</a>
+        <a href="#">만료 대상</a>
+        <a href="#" class="active">적재·반출 이력</a>
+    </nav>
+</aside>
+
+<main class="main">
+
+    <div class="header">
+        <h2>반출 요청 이력</h2>
+        <span>Warehouse Management</span>
+    </div>
+
+    <!-- 요약 -->
+    <section class="summary">
+        <div class="summary-card">
+            <div class="label">조회 날짜</div>
+            <div class="value" id="selectedDateText">-</div>
+        </div>
+
+        <div class="summary-card">
+            <div class="label">반출 건수</div>
+            <div class="value" id="totalCount">0</div>
+        </div>
+    </section>
+
+    <!-- 날짜 조회 -->
+    <section class="panel">
+        <h3>조회 조건</h3>
+
+        <div class="search-area">
+            <label for="searchDate">반출 날짜</label>
+            <input type="date" id="searchDate">
+
+            <button class="btn btn-primary" onclick="searchHistory()">
+                조회
+            </button>
+
+            <button class="btn btn-reset" onclick="resetDate()">
+                오늘
+            </button>
+        </div>
+    </section>
+
+    <!-- 이력 목록 -->
+    <section class="panel">
+        <h3>반출 이력 목록</h3>
+
+        <div class="result-info" id="resultInfo">
+            조회 결과 0건
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>이력 번호</th>
+                        <th>반출 요청 번호</th>
+                        <th>창고 ID</th>
+                        <th>슬롯 ID</th>
+                        <th>상품 정보</th>
+                        <th>유통기한</th>
+                        <th>적재일</th>
+                        <th>반출일</th>
+                    </tr>
+                </thead>
+
+                <tbody id="historyList">
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+</main>
+
+<script>
+    // 로컬 기준 오늘 날짜 YYYY-MM-DD
+    function getToday() {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, "0");
+        const day = String(today.getDate()).padStart(2, "0");
+
+        return `${year}-${month}-${day}`;
+    }
+
+    // 화면 테스트용 샘플 데이터
+    // 실제 연동 시 API 응답 데이터로 교체
+    const historyData = [
+        {
+            history_id: 1,
+            release_request_id: 2001,
+            warehouse_id: 1,
+            slot_id: 101,
+            info: "냉동 만두 1kg",
+            expiry_date: "2027-03-15",
+            input_date: "2026-11-01 10:30:00",
+            output_date: getToday() + " 09:15:00"
+        },
+        {
+            history_id: 2,
+            release_request_id: 2002,
+            warehouse_id: 1,
+            slot_id: 102,
+            info: "사과 주스 1L",
+            expiry_date: "2027-01-20",
+            input_date: "2026-11-02 11:20:00",
+            output_date: getToday() + " 10:25:00"
+        },
+        {
+            history_id: 3,
+            release_request_id: 2003,
+            warehouse_id: 2,
+            slot_id: 205,
+            info: "쌀 10kg",
+            expiry_date: "2027-08-10",
+            input_date: "2026-11-03 14:00:00",
+            output_date: "2026-11-05 15:30:00"
+        },
+        {
+            history_id: 4,
+            release_request_id: null,
+            warehouse_id: 1,
+            slot_id: 103,
+            info: "카레 500g",
+            expiry_date: "2027-05-10",
+            input_date: "2026-11-04 09:00:00",
+            output_date: null
+        }
+    ];
+
+    // 날짜 기준 조회
+    function searchHistory() {
+        const searchDate = document.getElementById("searchDate").value;
+
+        if (!searchDate) {
+            alert("조회 날짜를 선택해주세요.");
+            return;
+        }
+
+        // output_date가 존재하고 선택한 날짜와 일치하는 이력만 조회
+        const result = historyData.filter(item =>
+            item.output_date &&
+            item.output_date.substring(0, 10) === searchDate
+        );
+
+        renderHistory(result, searchDate);
+    }
+
+    // 이력 목록 출력
+    function renderHistory(data, searchDate) {
+        const tbody = document.getElementById("historyList");
+
+        document.getElementById("selectedDateText").textContent =
+            searchDate;
+
+        document.getElementById("totalCount").textContent =
+            data.length;
+
+        document.getElementById("resultInfo").textContent =
+            `조회 결과 ${data.length}건`;
+
+        if (data.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="8" class="empty-row">
+                        해당 날짜의 반출 이력이 없습니다.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        tbody.innerHTML = data.map(item => `
+            <tr>
+                <td class="history-id">#${item.history_id}</td>
+                <td>${item.release_request_id ?? "-"}</td>
+                <td>${item.warehouse_id}</td>
+                <td>${item.slot_id}</td>
+                <td>${item.info}</td>
+                <td>${item.expiry_date}</td>
+                <td>${item.input_date}</td>
+                <td>${item.output_date}</td>
+            </tr>
+        `).join("");
+    }
+
+    // 오늘 날짜로 초기화
+    function resetDate() {
+        document.getElementById("searchDate").value = getToday();
+        searchHistory();
+    }
+
+    // 최초 실행
+    document.getElementById("searchDate").value = getToday();
+    searchHistory();
+
+</script>
+
+</body>
+</html>

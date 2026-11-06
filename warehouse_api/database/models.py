@@ -64,7 +64,6 @@ class WarehouseSlot(Base):
         nullable=False
     )
 
-    dong = Column(String(20), nullable=False)
     line_code = Column(CHAR(1), nullable=False)
     column_no = Column(Integer, nullable=False)
     floor = Column(Integer, nullable=False)

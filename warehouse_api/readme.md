@@ -25,3 +25,11 @@
 		PUT /slots/{slot_id}
 	상품 slot 이동
 		PUT /slots/{slot_id}/move/{move_slot_id}
+
+
+## 환경 파일 생성후 진행 .env
+DB_HOST=localhost
+DB_PORT=5432
+DB_DATABASE=ragdb
+DB_USER=
+DB_PW=

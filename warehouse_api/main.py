@@ -1,6 +1,7 @@
 # uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from routers import (
     warehouse,
@@ -16,6 +17,17 @@ app = FastAPI(
     version="1.0.0",
     docs_url="/swagger"
 )
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://mkim0203.github.io",
+        "null"
+    ],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
+)
+
 
 app.include_router(warehouse.router)
 # app.include_router(storage.router)

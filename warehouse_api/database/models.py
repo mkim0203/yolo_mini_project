@@ -76,8 +76,8 @@ class WarehouseSlot(Base):
         server_default=text("CURRENT_TIMESTAMP")
     )
 
-class Storage(Base):
-    __tablename__ = "storage"
+class StorageInfo(Base):
+    __tablename__ = "storage_info"
 
     __table_args__ = (
         UniqueConstraint(
@@ -104,7 +104,7 @@ class Storage(Base):
 
     image_type = Column(String(50), nullable=False)
 
-    image_data = Column(LargeBinary, nullable=False)
+    image_data = Column(LargeBinary, nullable=True)
 
     expiry_date = Column(DateTime, nullable=False)
 
@@ -151,6 +151,42 @@ class StorageHistory(Base):
         nullable=True,
         server_default=text("CURRENT_TIMESTAMP")
     )
+
+class StorageRequest(Base):
+    __tablename__ = "storage_request"
+
+    request_id = Column(
+        Integer,
+        primary_key=True,
+        autoincrement=True
+    )
+
+    info = Column(
+        String(100),
+        nullable=True
+    )
+
+    expiry_date = Column(
+        DateTime,
+        nullable=False
+    )
+
+    image_type = Column(
+        String(50),
+        nullable=True
+    )
+
+    image_data = Column(
+        LargeBinary,
+        nullable=True
+    )
+
+    create_date = Column(
+        DateTime,
+        nullable=True,
+        server_default=text("CURRENT_TIMESTAMP")
+    )
+
 
 class ReleaseRequest(Base):
     __tablename__ = "release_request"

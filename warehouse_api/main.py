@@ -5,7 +5,9 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from routers import (
     warehouse,
-    # storage,
+    slot,
+    storage,
+    request,
     # release,
     # expiry,
     # slot,
@@ -30,7 +32,9 @@ app.add_middleware(
 
 
 app.include_router(warehouse.router)
-# app.include_router(storage.router)
+app.include_router(slot.router)
+app.include_router(storage.router)
+app.include_router(request.router)
 # app.include_router(release.router)
 # app.include_router(expiry.router)
 # app.include_router(slot.router)

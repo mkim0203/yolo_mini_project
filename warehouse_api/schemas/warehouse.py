@@ -2,6 +2,7 @@ from pydantic import BaseModel
 from typing import List
 
 
+
 class WarehouseItem(BaseModel):
     warehouse_id: int
     dong: str
@@ -14,7 +15,7 @@ class WarehouseListResponse(BaseModel):
 class WarehouseInfoItem(BaseModel):
     warehouse_id: int
     dong: str
-    line_code: str
+    line_code: str | None=None
 
 
 class WarehouseInfoResponse(BaseModel):
@@ -34,4 +35,4 @@ class WarehouseSlotItem(BaseModel):
 
 class WarehouseSlotListResponse(BaseModel):
     total: int
-    items: List[WarehouseSlotItem]    
+    items: List[WarehouseSlotItem]

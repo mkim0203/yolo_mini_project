@@ -8,8 +8,10 @@
 		창고 동기준 line 상태/ line 전체
 			GET /warehouse/{warehouse_id}/lines
 			GET /warehouse/{warehouse_id}/line/{line_code}
+		slot 상세보기
+			GET /slots/{slot_id}
 	적제 요청 목록
-		GET /storages
+		GET /storage/requests
 	적제 반출 이력
 		GET /releases
 	만료 대상 조회

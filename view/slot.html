@@ -1,0 +1,1088 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Warehouse Management</title>
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f3f5f8;
+    color: #263445;
+}
+
+.layout { display: flex; min-height: 100vh; }
+
+.sidebar {
+    width: 220px;
+    flex-shrink: 0;
+    background: #243449;
+    color: white;
+    padding: 25px 15px;
+}
+
+.sidebar h2 { font-size: 20px; margin: 0 0 35px; }
+
+.menu {
+    padding: 13px;
+    margin-bottom: 7px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: #cbd5e1;
+}
+
+.menu.active, .menu:hover {
+    background: #3b506b;
+    color: white;
+}
+
+.main {
+    flex: 1;
+    padding: 25px;
+    min-width: 0;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.header h1 { font-size: 25px; margin: 0; }
+
+.filter-section {
+    background: white;
+    padding: 16px 20px;
+    border-radius: 9px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 7px #00000008;
+}
+
+.filter-title {
+    font-size: 13px;
+    color: #778397;
+    margin-bottom: 10px;
+}
+
+.filter-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.filter-btn {
+    width: auto;
+    margin: 0;
+    padding: 9px 22px;
+    background: #edf1f6;
+    color: #526174;
+    border: 1px solid #e0e6ee;
+}
+
+.filter-btn:hover {
+    background: #dce7f5;
+    color: #245d9c;
+}
+
+.filter-btn.active {
+    background: #2879d0;
+    border-color: #2879d0;
+    color: white;
+}
+
+.summary {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.summary-card {
+    background: white;
+    padding: 18px;
+    border-radius: 9px;
+    box-shadow: 0 2px 7px #00000008;
+}
+
+.summary-card span { font-size: 13px; color: #778397; }
+
+.summary-card strong {
+    display: block;
+    font-size: 27px;
+    margin-top: 10px;
+}
+
+.green { color: #279768; }
+.yellow { color: #d59a25; }
+.red { color: #dc5555; }
+
+.content {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 20px;
+}
+
+.panel {
+    background: white;
+    border-radius: 10px;
+    padding: 22px;
+    box-shadow: 0 2px 7px #00000008;
+    min-width: 0;
+}
+
+.panel h3 { margin: 0 0 20px; }
+
+.legend {
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+    font-size: 12px;
+    margin-bottom: 20px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.legend-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+}
+
+.scene {
+    min-height: 350px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: auto;
+    padding: 25px;
+    background: #f7f9fc;
+    border-radius: 8px;
+}
+
+.rack {
+    display: grid;
+    gap: 10px;
+    width: max-content;
+    max-width: 100%;
+}
+
+.floor-label,
+.column-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    background: #f1f3f5;
+    border-radius: 4px;
+}
+
+.floor-label {
+    min-height: 60px;
+}
+
+.column-label {
+    min-height: 30px;
+}
+
+.empty-label {
+    background: transparent;
+}
+
+.empty-slot {
+    visibility: hidden;
+}
+
+.slot {
+    position: relative;
+    min-width: 65px;
+    height: 65px;
+    border: 2px solid transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    transition: .15s;
+    margin: 0;
+    padding: 5px;
+}
+
+.slot:hover { filter: brightness(.95); transform: translateY(-2px); }
+.slot.used { background: #b8e2cb; color: #176443; }
+.slot.empty { background: #ffebba; color: #96640c; }
+.slot.maintenance { background: #f5c6c6; color: #a52e2e; }\n.slot.unknown { background: #e2e8f0; color: #475569; }
+
+.slot.selected {
+    border-color: #2879d0;
+    box-shadow: 0 0 0 2px #2879d033;
+}
+
+.slot.move-target {
+    border: 2px dashed #2879d0;
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.slot small {
+    margin-top: 5px;
+    font-size: 10px;
+    font-weight: normal;
+}
+
+.detail-image {
+    width: 100%;
+    height: 180px;
+    background: #f3f5f8;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.detail-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.no-image { color: #9aa5b4; font-size: 13px; }
+
+.detail-row {
+    padding: 12px 0;
+    border-bottom: 1px solid #edf0f4;
+}
+
+.detail-row span {
+    display: block;
+    font-size: 12px;
+    color: #8591a1;
+    margin-bottom: 7px;
+}
+
+.detail-row strong { font-size: 14px; }
+
+.action-buttons { margin-top: 15px; }
+.action-buttons button { margin-top: 8px; }
+
+button {
+    border: 0;
+    padding: 12px;
+    border-radius: 6px;
+    background: #2879d0;
+    color: white;
+    cursor: pointer;
+}
+
+button:hover:not(:disabled) { background: #1c62ad; }
+button:disabled { background: #aeb8c4; cursor: not-allowed; }
+
+.move-button { background: #64748b; }
+.move-button:hover:not(:disabled) { background: #475569; }
+.cancel-button { background: #dc5555; }
+
+.message {
+    margin-top: 12px;
+    color: #2879d0;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.error-message {
+    color: #dc5555;
+    font-size: 13px;
+    margin-top: 8px;
+}
+
+@media(max-width: 1000px) {
+    .content { grid-template-columns: 1fr; }
+}
+
+@media(max-width: 650px) {
+    .sidebar { display: none; }
+    .summary { grid-template-columns: repeat(2, 1fr); }
+    .main { padding: 12px; }
+    .scene { justify-content: flex-start; }
+}
+</style>
+</head>
+
+<body>
+
+<div class="layout">
+
+    <aside class="sidebar">
+        <h2>Warehouse</h2>
+        <div class="menu">대시보드</div>
+        <div class="menu active">창고 현황</div>
+        <div class="menu">적재 요청</div>
+        <div class="menu">적재 요청 현황</div>
+        <div class="menu">반출 요청</div>
+        <div class="menu">만료 대상</div>
+        <div class="menu">적재·반출 이력</div>
+    </aside>
+
+    <main class="main">
+
+        <div class="header">
+            <h1>창고 현황</h1>
+            <span>Warehouse Management</span>
+        </div>
+
+        <div class="filter-section">
+            <div class="filter-title">창고 동 선택</div>
+            <div class="filter-buttons" id="dongButtons"></div>
+        </div>
+
+        <div class="filter-section">
+            <div class="filter-title">Line 선택</div>
+            <div class="filter-buttons" id="lineButtons"></div>
+        </div>
+
+        <div id="apiError" class="error-message"></div>
+
+        <div class="summary">
+            <div class="summary-card">
+                <span>전체 슬롯</span>
+                <strong id="total">0</strong>
+            </div>
+            <div class="summary-card">
+                <span>사용 중</span>
+                <strong class="green" id="used">0</strong>
+            </div>
+            <div class="summary-card">
+                <span>빈 공간</span>
+                <strong class="yellow" id="empty">0</strong>
+            </div>
+            <div class="summary-card">
+                <span>점검 중</span>
+                <strong class="red" id="maintenance">0</strong>
+            </div>
+        </div>
+
+        <div class="content">
+
+            <section class="panel">
+                <h3 id="rackTitle">창고 정보를 불러오는 중...</h3>
+
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background:#b8e2cb"></div>
+                        사용 중
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background:#ffebba"></div>
+                        빈 공간
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background:#f5c6c6"></div>
+                        점검
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background:#dbeafe;border:1px solid #2879d0"></div>
+                        이동 대상
+                    </div>
+                </div>
+
+                <div class="scene">
+                    <div class="rack" id="rack"></div>
+                </div>
+            </section>
+
+            <section class="panel">
+                <h3>슬롯 상세정보</h3>
+
+                <div class="detail-image">
+                    <img id="productImage" alt="상품 이미지" hidden>
+                    <span id="noImage" class="no-image">이미지가 없습니다.</span>
+                </div>
+
+                <div class="detail-row">
+                    <span>정보</span>
+                    <strong id="slot_info">슬롯을 선택하세요.</strong>
+                </div>
+
+                <div class="detail-row">
+                    <span>상태</span>
+                    <strong id="status">-</strong>
+                </div>
+
+                <div class="detail-row">
+                    <span>적재 물품</span>
+                    <strong id="product">-</strong>
+                </div>
+
+                <div class="detail-row">
+                    <span>유통기한</span>
+                    <strong id="expiry">-</strong>
+                </div>
+
+                <div class="action-buttons">
+                    <button id="moveButton" class="move-button"
+                            onclick="startMove()" disabled>
+                        슬롯 이동
+                    </button>
+
+                    <button id="inspectButton"
+                            onclick="toggleMaintenance()" disabled>
+                        점검 상태 변경
+                    </button>
+
+                    <button id="cancelMoveButton" class="cancel-button"
+                            onclick="cancelMove()" hidden>
+                        이동 취소
+                    </button>
+                </div>
+
+                <div id="message" class="message"></div>
+            </section>
+
+        </div>
+    </main>
+</div>
+
+<script>
+
+// --------------------------------------------------
+// API 설정 및 창고 정보
+// --------------------------------------------------
+
+const API_BASE_URL = "http://localhost:8000";
+
+let warehouseInfos = [];
+let selectedWarehouseId = null;
+let selectedDong = null;
+let selectedLine = null;
+
+// 선택한 Line의 API 슬롯 데이터
+let warehouseSlots = [];
+
+let selectedSlot = null;
+let moveMode = false;
+let slotRequestId = 0;
+
+// --------------------------------------------------
+// 창고 정보 API 조회
+// --------------------------------------------------
+
+async function loadWarehouseInfo() {
+
+    const errorElement = document.getElementById("apiError");
+
+    try {
+
+        const response = await fetch(
+            `${API_BASE_URL}/warehouses/info`
+        );
+
+        if (!response.ok) {
+            throw new Error(`API 오류: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (!Array.isArray(data.items)) {
+            throw new Error("API 응답 형식이 올바르지 않습니다.");
+        }
+
+        // warehouse_id + dong 기준으로 그룹화
+        warehouseInfos = data.items.reduce((result, item) => {
+
+            let warehouse = result.find(
+                x => x.warehouse_id === item.warehouse_id
+            );
+
+            if (!warehouse) {
+                warehouse = {
+                    warehouse_id: item.warehouse_id,
+                    dong: item.dong,
+                    lines: []
+                };
+
+                result.push(warehouse);
+            }
+
+            if (
+                item.line_code !== null &&
+                !warehouse.lines.includes(item.line_code)
+            ) {
+                warehouse.lines.push(item.line_code);
+            }
+
+            return result;
+
+        }, []);
+
+        // Line 정렬
+        warehouseInfos.forEach(warehouse => {
+            warehouse.lines.sort();
+        });
+
+        if (warehouseInfos.length === 0) {
+            throw new Error("등록된 창고 정보가 없습니다.");
+        }
+
+        // 최초 창고 및 Line 선택
+        selectedWarehouseId = warehouseInfos[0].warehouse_id;
+        selectedDong = warehouseInfos[0].dong;
+        selectedLine = warehouseInfos[0].lines[0] ?? null;
+
+        renderAll();
+
+        if (selectedLine !== null) {
+            await loadWarehouseSlots();
+        }
+
+    } catch (error) {
+
+        console.error("창고 정보 조회 실패:", error);
+
+        errorElement.textContent =
+            `창고 정보를 불러오지 못했습니다. ${error.message}`;
+
+        document.getElementById("rackTitle").textContent =
+            "창고 정보를 불러올 수 없습니다.";
+
+        //renderDongButtons();
+        // renderLineButtons();
+        // renderRack();
+        // renderDetail();
+        renderAll();
+    }
+}
+
+// --------------------------------------------------
+// 현재 선택된 창고 정보
+// --------------------------------------------------
+
+function getCurrentWarehouse() {
+    return warehouseInfos.find(
+        x => x.warehouse_id === selectedWarehouseId
+    );
+}
+
+// --------------------------------------------------
+// 동 버튼
+// --------------------------------------------------
+
+function renderDongButtons() {
+
+    const container = document.getElementById("dongButtons");
+    container.innerHTML = "";
+
+    warehouseInfos.forEach(warehouse => {
+
+        const button = document.createElement("button");
+
+        button.className =
+            "filter-btn" +
+            (selectedWarehouseId === warehouse.warehouse_id ? " active" : "");
+
+        button.textContent = `${warehouse.dong}동`;
+
+        button.onclick = () => {
+
+            selectedWarehouseId = warehouse.warehouse_id;
+            selectedDong = warehouse.dong;
+
+            // 해당 창고의 첫 번째 Line 선택
+            selectedLine = warehouse.lines[0] ?? null;
+
+            selectedSlot = null;
+            moveMode = false;
+
+            warehouseSlots = [];
+            renderAll();
+
+            if (selectedLine !== null) {
+                loadWarehouseSlots();
+            }
+        };
+
+        container.appendChild(button);
+    });
+}
+
+// --------------------------------------------------
+// Line 버튼
+// --------------------------------------------------
+
+function renderLineButtons() {
+
+    const container = document.getElementById("lineButtons");
+    container.innerHTML = "";
+
+    const warehouse = getCurrentWarehouse();
+
+    if (!warehouse) return;
+
+    warehouse.lines.forEach(line => {
+
+        const button = document.createElement("button");
+
+        button.className =
+            "filter-btn" +
+            (selectedLine === line ? " active" : "");
+
+        button.textContent = `${line} Line`;
+
+        button.onclick = () => {
+
+            selectedLine = line;
+            selectedSlot = null;
+            moveMode = false;
+            warehouseSlots = [];
+
+            renderAll();
+            loadWarehouseSlots();
+        };
+
+        container.appendChild(button);
+    });
+}
+
+// --------------------------------------------------
+// 선택한 창고 / Line 슬롯 API 조회
+// --------------------------------------------------
+
+async function loadWarehouseSlots() {
+
+    if (selectedWarehouseId === null || selectedLine === null) {
+        warehouseSlots = [];
+        renderAll();
+        return;
+    }
+
+    const requestId = ++slotRequestId;
+    const errorElement = document.getElementById("apiError");
+
+    errorElement.textContent = "";
+    document.getElementById("rackTitle").textContent = "슬롯 정보를 불러오는 중...";
+    document.getElementById("rack").innerHTML = "";
+
+    try {
+        const url =
+            `${API_BASE_URL}/warehouses/${selectedWarehouseId}/lines/${encodeURIComponent(selectedLine)}`;
+
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            throw new Error(`API 오류: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (!Array.isArray(data.items)) {
+            throw new Error("슬롯 API 응답에 items 배열이 없습니다.");
+        }
+
+        // 빠르게 Line을 변경한 경우 이전 요청의 응답은 무시
+        if (requestId !== slotRequestId) return;
+
+        warehouseSlots = data.items.map(item => ({
+            ...item,
+            status: normalizeStatus(item.status)
+        }));
+
+        selectedSlot = null;
+        moveMode = false;
+
+        renderAll();
+
+    } catch (error) {
+        if (requestId !== slotRequestId) return;
+
+        console.error("슬롯 정보 조회 실패:", error);
+        warehouseSlots = [];
+        selectedSlot = null;
+        renderAll();
+
+        errorElement.textContent =
+            `슬롯 정보를 불러오지 못했습니다. ${error.message}`;
+    }
+}
+
+// API 상태값을 화면 표시용 상태로 변환
+// 실제 DB status 값에 맞춰 이 함수를 조정하세요.
+function normalizeStatus(status) {
+    const value = String(status ?? "").trim().toUpperCase();
+
+    if (["USING", "USED"].includes(value)) return "used";
+    if (["EMPTY", "AVAILABLE"].includes(value)) return "empty";
+    if (["MAINTENANCE"].includes(value)) return "maintenance";
+
+    return "unknown";
+}
+
+// --------------------------------------------------
+// 현재 선택된 슬롯 조회
+// --------------------------------------------------
+
+function getCurrentSlots() {
+
+    if (selectedWarehouseId === null || selectedLine === null) {
+        return [];
+    }
+
+    return warehouseSlots;
+}
+
+
+function renderRack() {
+
+    const rack = document.getElementById("rack");
+    rack.innerHTML = "";
+
+    const filtered = getCurrentSlots();
+
+    filtered.sort((a, b) =>
+        b.floor - a.floor || a.column_no - b.column_no
+    );
+
+    const columnCount = Math.max(
+        ...filtered.map(slot => Number(slot.column_no)),
+        0
+    );
+
+    const floorCount = Math.max(
+        ...filtered.map(slot => Number(slot.floor)),
+        0
+    );
+
+    // 왼쪽 층수 + 슬롯 영역
+    rack.style.display = "grid";
+    rack.style.gridTemplateColumns =
+        `40px repeat(${columnCount}, 1fr)`;
+
+    // 층수 표시
+    for (let floor = floorCount; floor >= 1; floor--) {
+
+        const floorLabel = document.createElement("div");
+        floorLabel.className = "floor-label";
+        floorLabel.textContent = `${floor}층`;
+
+        rack.appendChild(floorLabel);
+
+        for (let column = 1; column <= columnCount; column++) {
+
+            const slot = filtered.find(
+                s => Number(s.floor) === floor &&
+                     Number(s.column_no) === column
+            );
+
+            const cell = document.createElement("div");
+
+            if (slot) {
+                cell.className = `slot ${slot.status}`;
+
+                if (selectedSlot &&
+                    selectedSlot.slot_id === slot.slot_id) {
+                    cell.classList.add("selected");
+                }
+
+                if (moveMode && slot.status === "empty") {
+                    cell.classList.add("move-target");
+                }
+
+                cell.innerHTML = `
+                    ${slot.column_no}열
+                    <small>${slot.floor}층</small>
+                `;
+
+                cell.title =
+                    `${slot.column_no}열 / ${slot.floor}층`;
+
+                cell.onclick = () => onSlotClick(slot);
+
+            } else {
+                cell.className = "slot empty-slot";
+            }
+
+            rack.appendChild(cell);
+        }
+    }
+
+    // 아래쪽 열 번호 표시
+    const emptyLabel = document.createElement("div");
+    emptyLabel.className = "column-label empty-label";
+    rack.appendChild(emptyLabel);
+
+    for (let column = 1; column <= columnCount; column++) {
+        const columnLabel = document.createElement("div");
+
+        columnLabel.className = "column-label";
+        columnLabel.textContent = `${column}열`;
+
+        rack.appendChild(columnLabel);
+    }
+
+    document.getElementById("rackTitle").textContent =
+        selectedLine !== null
+            ? `${selectedDong}동 / ${selectedLine} Line`
+            : `${selectedDong ?? ""}동 / Line 없음`;
+
+    updateSummary(filtered);
+}
+
+// --------------------------------------------------
+// 통계
+// --------------------------------------------------
+
+function updateSummary(data) {
+
+    const count = {
+        used: 0,
+        empty: 0,
+        maintenance: 0
+    };
+
+    data.forEach(slot => {
+        if (Object.prototype.hasOwnProperty.call(count, slot.status)) {
+            count[slot.status]++;
+        }
+    });
+
+    document.getElementById("total").textContent = data.length;
+    document.getElementById("used").textContent = count.used;
+    document.getElementById("empty").textContent = count.empty;
+    document.getElementById("maintenance").textContent = count.maintenance;
+}
+
+// --------------------------------------------------
+// 슬롯 선택 및 이동
+// --------------------------------------------------
+
+function onSlotClick(slot) {
+
+    if (moveMode) {
+        moveSlot(slot);
+        return;
+    }
+
+    selectedSlot = slot;
+    renderAll();
+
+    getSlotDetail(slot.slot_id);
+}
+
+function startMove() {
+
+    if (!selectedSlot || selectedSlot.status !== "used") return;
+
+    moveMode = true;
+    renderAll();
+
+    document.getElementById("message").textContent =
+        "이동할 빈 슬롯을 선택하세요.";
+}
+
+function cancelMove() {
+
+    moveMode = false;
+    renderAll();
+}
+
+function moveSlot(target) {
+
+    if (!selectedSlot) return;
+
+    if (target.slot_id === selectedSlot.slot_id) return;
+
+    if (target.status !== "empty") {
+        alert("빈 슬롯만 이동 대상으로 선택할 수 있습니다.");
+        return;
+    }
+
+    target.status = "used";
+    target.product = selectedSlot.product;
+    target.expiry = selectedSlot.expiry;
+    target.image = selectedSlot.image;
+
+    selectedSlot.status = "empty";
+    selectedSlot.product = null;
+    selectedSlot.expiry = null;
+    selectedSlot.image = null;
+
+    selectedSlot = target;
+    moveMode = false;
+
+    renderAll();
+
+    document.getElementById("message").textContent =
+        "샘플 데이터에서 슬롯 이동이 완료되었습니다.";
+}
+
+// --------------------------------------------------
+// 상세 정보
+// --------------------------------------------------
+
+function renderDetail() {
+
+    const slot = selectedSlot;
+
+    const statusText = {
+        used: "사용 중",
+        empty: "빈 공간",
+        maintenance: "점검 중",
+        unknown: "알 수 없는 상태"
+    };
+
+    document.getElementById("slot_info").textContent =
+        slot
+            ? `${slot.dong}동 / ${slot.line_code} Line / ${slot.column_no}열 / ${slot.floor}층`
+            : "슬롯을 선택하세요.";
+
+    document.getElementById("status").textContent =
+        slot ? (statusText[slot.status] || slot.status) : "-";
+
+    document.getElementById("product").textContent = "-";
+    document.getElementById("expiry").textContent = "-";
+
+    const image = document.getElementById("productImage");
+    image.src = "";
+    image.hidden = true;
+
+    document.getElementById("noImage").hidden = false;
+
+    selectedSlotDetail = null;
+
+    document.getElementById("moveButton").disabled = true;
+    document.getElementById("maintenanceButton").disabled = true;
+
+    document.getElementById("cancelMoveButton").hidden =
+        !moveMode;
+}
+
+async function getSlotDetail(slotId) {
+
+    try {
+        // 사용 중이 아닌 경우 API 조회 없이 기본값 출력
+        if (normalizeStatus(selectedSlot?.status) !== "used") {
+            renderSlotDetail(null);
+            return;
+        }
+
+        const response = await fetch(
+            `${API_BASE_URL}/slots/${slotId}`
+        );
+
+        if (!response.ok) {
+            throw new Error(`API 오류: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        // 다른 슬롯을 선택했다면 이전 응답 무시
+        if (selectedSlot?.slot_id !== slotId) return;
+
+
+        renderSlotDetail(data);
+
+    } catch (error) {
+
+        console.error("슬롯 상세 조회 실패:", error);
+
+        document.getElementById("apiError").textContent =
+            `슬롯 상세 조회 실패: ${error.message}`;
+    }
+}
+
+let selectedSlotDetail = null;
+function renderSlotDetail(data) {
+    const image = document.getElementById("productImage");
+    const noImage = document.getElementById("noImage");
+    const statusText = {
+        used: "사용 중",
+        empty: "빈 공간",
+        maintenance: "점검 중",
+        unknown: "알 수 없는 상태"
+    };
+
+    if (data === null) {
+        document.getElementById("slot_info").textContent = "-";
+        document.getElementById("product").textContent = "-";
+        document.getElementById("expiry").textContent = "-";
+        document.getElementById("status").textContent =
+            selectedSlot ? (statusText[selectedSlot.status] || selectedSlot.status) : "-";
+
+        image.src = "";
+        image.hidden = true;
+        noImage.hidden = false;
+
+        selectedSlotDetail = null;
+        return;
+    }
+
+    document.getElementById("slot_info").textContent =
+        data.slot_info ?? "-";
+
+    document.getElementById("product").textContent =
+        data.product ?? "-";
+
+    document.getElementById("expiry").textContent =
+        data.expiry_date ?? "-";
+
+    document.getElementById("status").textContent =
+        selectedSlot ? (statusText[selectedSlot.status] || selectedSlot.status) : "-";
+
+    if (data.image_data && data.image_type) {
+        image.src = `data:${data.image_type};base64,${data.image_data}`;
+        image.hidden = false;
+        noImage.hidden = true;
+    } else {
+        image.src = "";
+        image.hidden = true;
+        noImage.hidden = false;
+    }
+
+    selectedSlotDetail = data;
+}
+
+// --------------------------------------------------
+// 점검 상태 변경
+// --------------------------------------------------
+
+function toggleMaintenance() {
+
+    if (!selectedSlot || selectedSlot.status === "used") return;
+
+    selectedSlot.status =
+        selectedSlot.status === "maintenance"
+            ? "empty"
+            : "maintenance";
+
+    renderAll();
+}
+
+// --------------------------------------------------
+// 전체 화면 갱신
+// --------------------------------------------------
+
+function renderAll() {
+    renderDongButtons();
+    renderLineButtons();
+    renderRack();
+    renderSlotDetail(null);
+}
+
+// 최초 실행
+loadWarehouseInfo();
+
+</script>
+
+</body>
+</html>

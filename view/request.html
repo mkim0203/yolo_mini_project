@@ -1,0 +1,482 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Warehouse Management - 적재 요청</title>
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f3f5f8;
+    color: #263445;
+}
+
+.layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: 220px;
+    flex-shrink: 0;
+    background: #243449;
+    color: white;
+    padding: 25px 15px;
+}
+
+.sidebar h2 {
+    font-size: 20px;
+    margin: 0 0 35px;
+}
+
+.menu {
+    padding: 13px;
+    margin-bottom: 7px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: #cbd5e1;
+}
+
+.menu.active, .menu:hover {
+    background: #3b506b;
+    color: white;
+}
+
+.main {
+    flex: 1;
+    padding: 25px;
+    min-width: 0;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.header h1 {
+    font-size: 25px;
+    margin: 0;
+}
+
+.content {
+    max-width: 900px;
+}
+
+.panel {
+    background: white;
+    border-radius: 10px;
+    padding: 25px;
+    box-shadow: 0 2px 7px #00000008;
+    min-width: 0;
+}
+
+.panel h3 {
+    margin: 0 0 25px;
+    font-size: 17px;
+}
+
+.form-group {
+    margin-bottom: 22px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.required {
+    color: #dc5555;
+}
+
+input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #d5dce5;
+    border-radius: 6px;
+    font-size: 14px;
+    color: #263445;
+    background: white;
+}
+
+input:focus {
+    outline: none;
+    border-color: #2879d0;
+}
+
+.help {
+    color: #8591a1;
+    font-size: 11px;
+    margin-top: 6px;
+}
+
+.image-upload {
+    border: 2px dashed #cbd5e1;
+    border-radius: 8px;
+    min-height: 230px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    background: #f8fafc;
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.image-upload:hover {
+    border-color: #2879d0;
+    background: #f1f7ff;
+}
+
+.image-upload input {
+    display: none;
+}
+
+.image-upload img {
+    width: 100%;
+    height: 230px;
+    object-fit: contain;
+    display: none;
+}
+
+.upload-guide {
+    text-align: center;
+    color: #8591a1;
+    font-size: 13px;
+    line-height: 1.8;
+}
+
+.upload-icon {
+    font-size: 35px;
+    margin-bottom: 10px;
+}
+
+.image-info {
+    font-size: 12px;
+    color: #64748b;
+    margin-top: 12px;
+    word-break: break-all;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 28px;
+}
+
+button {
+    border: 0;
+    padding: 12px 24px;
+    border-radius: 6px;
+    background: #2879d0;
+    color: white;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+button:hover {
+    background: #1c62ad;
+}
+
+button.secondary {
+    background: #64748b;
+}
+
+button.secondary:hover {
+    background: #475569;
+}
+
+.message {
+    margin-top: 15px;
+    font-size: 13px;
+    color: #2879d0;
+}
+
+@media(max-width: 650px) {
+    .sidebar {
+        display: none;
+    }
+
+    .main {
+        padding: 12px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="layout">
+
+    <aside class="sidebar">
+        <h2>Warehouse</h2>
+        <div class="menu">대시보드</div>
+        <div class="menu">창고 현황</div>
+        <div class="menu active">적재 요청</div>
+        <div class="menu">적재 요청 현황</div>
+        <div class="menu">반출 요청</div>
+        <div class="menu">만료 대상</div>
+        <div class="menu">적재·반출 이력</div>
+    </aside>
+
+    <main class="main">
+
+        <div class="header">
+            <h1>적재 요청</h1>
+            <span>Warehouse Management</span>
+        </div>
+
+        <div class="content" id="content-body">
+
+            <section class="panel">
+
+                <h3>상품 정보 입력</h3>
+
+                <form id="storageForm">
+
+                    <div class="form-group">
+                        <label>
+                            상품 정보 <span class="required">*</span>
+                        </label>
+
+                        <input
+                            type="text"
+                            id="product"
+                            placeholder="상품명을 입력하세요."
+                            maxlength="100"
+                            required
+                        >
+
+                        <div class="help">
+                            상품명 또는 상품에 대한 간단한 설명을 입력합니다.
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            유통기한 <span class="required">*</span>
+                        </label>
+
+                        <input
+                            type="datetime-local"
+                            id="expiry"
+                            step="3600"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            상품 이미지 <span class="required">*</span>
+                        </label>
+
+                        <label class="image-upload" for="imageFile">
+
+                            <div class="upload-guide" id="uploadGuide">
+                                <div class="upload-icon">📷</div>
+                                상품 이미지를 선택하세요.<br>
+                                클릭하여 이미지 업로드
+                            </div>
+
+                            <img id="previewImage" alt="상품 이미지 미리보기">
+
+                            <input
+                                type="file"
+                                id="imageFile"
+                                accept="image/jpeg,image/png,image/webp"
+                                
+                            >
+                        </label>
+
+                        <div class="image-info" id="imageInfo">
+                            JPG, PNG, WEBP 이미지 지원
+                        </div>
+
+                        <div class="help">
+                            상품 확인을 위한 이미지 1장을 등록합니다.
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit">적재 요청 등록</button>
+                        <button type="reset" class="secondary">초기화</button>
+                    </div>
+                </form>
+            </section>
+
+            
+        </div>
+
+        <div id="message" class="message"></div>
+
+    </main>
+</div>
+
+<script>
+const API_BASE_URL = "http://localhost:8000";
+
+const form = document.getElementById("storageForm");
+const imageFile = document.getElementById("imageFile");
+const previewImage = document.getElementById("previewImage");
+const uploadGuide = document.getElementById("uploadGuide");
+
+let selectedFile = null;
+let imageUrl = null;
+
+setDefault();
+
+function setDefault() {
+    const now = new Date();
+
+    now.setMinutes(0, 0, 0);
+
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    const hour = String(now.getHours()).padStart(2, "0");
+
+    document.getElementById("expiry").value =
+        `${year}-${month}-${day}T${hour}:00`;
+}
+
+// 이미지 선택
+imageFile.addEventListener("change", function() {
+
+    const file = this.files[0];
+
+    if (!file) return;
+
+    const allowedTypes = [
+        "image/jpeg",
+        "image/png",
+        "image/webp"
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+        alert("JPG, PNG, WEBP 이미지만 등록할 수 있습니다.");
+        this.value = "";
+        return;
+    }
+
+    // 이미지 크기 제한: 10MB
+    if (file.size > 10 * 1024 * 1024) {
+        alert("이미지 파일은 10MB 이하만 등록할 수 있습니다.");
+        this.value = "";
+        return;
+    }
+
+    selectedFile = file;
+
+    if (imageUrl) {
+        URL.revokeObjectURL(imageUrl);
+    }
+
+    imageUrl = URL.createObjectURL(file);
+
+    previewImage.src = imageUrl;
+    previewImage.style.display = "block";
+    uploadGuide.style.display = "none";
+
+    document.getElementById("imageInfo").textContent =
+        `${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+});
+
+// 폼 초기화
+form.addEventListener("reset", function() {
+
+    setTimeout(() => {
+
+        selectedFile = null;
+
+        if (imageUrl) {
+            URL.revokeObjectURL(imageUrl);
+            imageUrl = null;
+        }
+
+        previewImage.src = "";
+        previewImage.style.display = "none";
+        uploadGuide.style.display = "block";
+
+        document.getElementById("imageInfo").textContent =
+            "JPG, PNG, WEBP 이미지 지원";
+
+        //document.getElementById("message").textContent = "";
+
+    }, 0);
+});
+
+// 적재 요청 등록
+form.addEventListener("submit", async function(e) {
+
+    e.preventDefault();
+
+    const product = document.getElementById("product").value.trim();
+    const expiry = document.getElementById("expiry").value;
+
+    if (!product || !expiry || !selectedFile) {
+        alert("필수 항목을 입력해주세요.");
+        return;
+    }
+
+    const formData = new FormData();
+
+    formData.append("info", product);
+    formData.append("expiry_date", expiry);
+    formData.append("image", selectedFile);
+
+    try {
+        const response = await fetch(
+            `${API_BASE_URL}/storage/request`,
+            {
+                method: "POST",
+                body: formData
+            }
+        );
+
+        const data = await response.json();
+
+        if (response.ok) {
+            form.reset();
+            document.getElementById("content-body").style.display = "none";
+
+            document.getElementById("message").textContent =
+            `${data.message} (요청번호: ${data.request_id})`;
+
+            alert(`적재 요청이 등록되었습니다.\n요청번호: ${data.request_id}`);
+        } else {
+            document.getElementById("message").textContent =
+            data.detail || data.message || "적재 요청 처리에 실패했습니다.";
+
+            alert(data.detail || data.message || "적재 요청 실패");
+        }
+
+    } catch (error) {
+        alert(error.message);
+    }
+    
+
+    // // 화면 테스트용
+    // console.log({
+    //     info: product,
+    //     expiry_date: expiry,
+    //     image_type: selectedFile.type,
+    //     image_file: selectedFile
+    // });
+
+    // document.getElementById("message").textContent =
+    //     "화면 테스트용 데이터가 생성되었습니다. 실제 DB에는 저장되지 않습니다.";
+
+});
+
+</script>
+
+</body>
+</html>

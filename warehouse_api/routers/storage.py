@@ -1,10 +1,10 @@
-from fastapi import APIRouter, Depends, Depends, UploadFile, File, Form, HTTPException
+from fastapi import APIRouter, Depends, Depends, UploadFile, File, Form, HTTPException, Query
 from sqlalchemy.orm import Session
 
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from database.connection import get_db
-from database.models import StorageInfo
-
+from database.models import StorageInfo, ReleaseRequest, StorageHistory, Warehouse, WarehouseSlot
+from schemas.storage import ReleaseResponse, HistoryResponse
 
 import base64
 
@@ -22,6 +22,9 @@ async def test(
     image: UploadFile = File(...),
     db: Session = Depends(get_db)
 ):
+    """
+    이미지 넣기 테스트..
+    """
     # 이미지 타입 확인
     if not image.content_type or not image.content_type.startswith("image/"):
         raise HTTPException(
@@ -81,3 +84,133 @@ async def test(
         "image_type": storage.image_type,
         "filename": image.filename
     }
+
+
+@router.get("/history", description="적재 및 반출 이력 조회")
+async def search_history(
+    find_text: str = "",
+    option: str = "7d",
+    max_row: int = Query(200, ge=30, le=200),
+    db: Session = Depends(get_db)
+):
+    """
+    option:
+        7d  : 최근 7일
+        30d : 최근 30일
+        all : 전체
+    max_row:
+        최대 조회 건수
+    """
+    print(f"{find_text} / {option} / {max_row}")
+
+    if max_row < 30:
+        max_row = 30
+    elif max_row > 200:
+        max_row = 200
+
+    query = (
+        db.query(
+            StorageHistory.history_id,
+            Warehouse.dong,
+            WarehouseSlot.line_code,
+            WarehouseSlot.column_no,
+            WarehouseSlot.floor,
+            StorageHistory.info,
+            StorageHistory.expiry_date,
+            StorageHistory.storage_request_id,
+            StorageHistory.release_request_id,
+            StorageHistory.input_date,
+            StorageHistory.output_date,
+            StorageHistory.create_date
+        )
+        .outerjoin(
+            Warehouse,
+            StorageHistory.warehouse_id == Warehouse.warehouse_id
+        )
+        .outerjoin(
+            WarehouseSlot,
+            StorageHistory.slot_id == WarehouseSlot.slot_id
+        )
+    )
+
+    # 1. 날짜 조건
+    now = datetime.now(timezone.utc)
+
+    if option == "7d":
+        start_date = now - timedelta(days=7)
+        query = query.filter(StorageHistory.create_date >= start_date)
+
+    elif option == "30d":
+        start_date = now - timedelta(days=30)
+        query = query.filter(StorageHistory.create_date >= start_date)
+
+    elif option != "all":
+        raise HTTPException(status_code=400, detail="잘못된 조회 기간입니다.")
+
+    # 2. 검색어 조건
+    if find_text.strip():
+        query = query.filter(
+            StorageHistory.info.ilike(f"%{find_text.strip()}%")
+        )
+
+    # 3. 정렬 및 최대 조회 건수
+    result = (
+        query
+        .order_by(StorageHistory.history_id.desc())
+        .limit(max_row)
+        .all()
+    )
+
+    items = [
+        HistoryResponse(**row._mapping)
+    for row in result
+]
+
+    return items
+    
+
+@router.get("/{id}", description="창고 적재 확인. option에 따라 구분하여 조회함.")
+async def search_storage(id:int, option:str = "request", db: Session = Depends(get_db)):
+    query = db.query(
+        StorageInfo.slot_id,
+        StorageInfo.info,
+        StorageInfo.image_type,
+        StorageInfo.image_data,
+        StorageInfo.expiry_date
+    )
+
+    if option == "request":
+        query = query.filter(StorageInfo.request_id == id)
+    elif option == "storage":
+        query = query.filter(StorageInfo.storage_id == id)
+    elif option == "slot":
+        query = query.filter(StorageInfo.slot_id == id)
+    else:
+        raise HTTPException(
+            status_code=400,
+            detail="잘못된 조회 옵션입니다."
+        )
+
+    result = query.first()
+
+    if result is None:
+        raise HTTPException(
+            status_code=400,
+            detail="정보를 찾을수 없습니다."
+        )
+
+    # 이미 등록된 slot id인지 확인
+    target_slot_id = result.slot_id
+    check_result = db.query(ReleaseRequest.release_id).filter(ReleaseRequest.slot_id == target_slot_id).first()
+
+
+    return ReleaseResponse(
+        release_requested=False if check_result is None else True,
+        info=result.info,
+        image_type=result.image_type,
+        image_data=(
+            base64.b64encode(result.image_data).decode("utf-8")
+            if result.image_data else None
+        ),
+        expiry_date=result.expiry_date
+    )

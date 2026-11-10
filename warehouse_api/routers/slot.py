@@ -21,6 +21,7 @@ def get_lines(slot_id: int, db: Session = Depends(get_db)):
             StorageInfo.info,
             StorageInfo.image_type,
             StorageInfo.image_data,
+            StorageInfo.request_id,
             StorageInfo.expiry_date
         )
         .filter(StorageInfo.slot_id == slot_id)
@@ -37,6 +38,7 @@ def get_lines(slot_id: int, db: Session = Depends(get_db)):
             image_type=item.image_type,
             #image_data=item.image_data,
             image_data = base64.b64encode(item.image_data).decode("utf-8") if item.image_data else None,
+            request_id = item.request_id,
             expiry_date=item.expiry_date
         )
         for item in result

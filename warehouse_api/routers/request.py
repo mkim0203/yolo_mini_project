@@ -6,6 +6,8 @@ from database.connection import get_db
 from database.models import StorageRequest
 from schemas.storage import StorageRequestItem, StorageRequestResponse, StorageRequestDetail
 
+from sqlalchemy import text
+
 import base64
 
 router = APIRouter(
@@ -42,6 +44,15 @@ async def storage_request(
     #     "message": "임시 테스트",
     #     "request_id": -1,
     # }
+
+    print(expiry_date.tzinfo)
+    # 타임존 수정
+    if expiry_date.tzinfo is None:
+        expiry_date = expiry_date.replace(
+            tzinfo=datetime.now().astimezone().tzinfo
+        )
+    else:
+        expiry_date = expiry_date.astimezone()
 
     # 요청 테이블에 데이터 저장
     add_data = StorageRequest()
@@ -99,34 +110,55 @@ async def search_requests( db: Session = Depends(get_db)):
 
 @router.get("/{request_id}", description="적재 요청 ID 정보 조회")
 async def search_requests(request_id:int, db: Session = Depends(get_db)):
-    print(request_id)
+    # print(request_id)
     result = (
-            db.query(
-                StorageRequest.request_id,
-                StorageRequest.info,
-                StorageRequest.image_type,
-                StorageRequest.image_data,
-                StorageRequest.expiry_date
-            )
-            .filter(StorageRequest.request_id == request_id)
-            .all()
+        db.query(
+            StorageRequest.request_id,
+            StorageRequest.info,
+            StorageRequest.image_type,
+            StorageRequest.image_data,
+            StorageRequest.expiry_date
         )
+        .filter(StorageRequest.request_id == request_id)
+        .first()
+    )
         
-    if len(result) == 0:
+
+    if result is None:
         return None
 
     
-    items = [
-        StorageRequestDetail(
-            request_id=item.request_id,
-            info=item.info,
-            image_type=item.image_type,
-            #image_data=item.image_data,
-            image_data = base64.b64encode(item.image_data).decode("utf-8") if item.image_data else None,
-            expiry_date=item.expiry_date
-        )
-        for item in result
-    ]
-    
+    return StorageRequestDetail(
+        request_id=result.request_id,
+        info=result.info,
+        image_type=result.image_type,
+        #image_data=item.image_data,
+        image_data = base64.b64encode(result.image_data).decode("utf-8") if result.image_data else None,
+        expiry_date=result.expiry_date
+    )
 
-    return items[0]
+
+@router.post("/{request_id}/slot", description="적재 요청 받은 항목을 slot에 적재 진행.")
+async def input_slot(request_id:int, db: Session = Depends(get_db)):
+    print(request_id)
+    # 적재 요청 테이블에서 확인
+    target = db.query(StorageRequest).filter(StorageRequest.request_id == request_id).first()
+    
+    if target is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"해당 id로 적재된 정보가 없습니다."
+        )
+    print(target)
+    result = db.execute(
+        text("SELECT input_slot(:request_id)"),
+        {"request_id": request_id}
+    )
+
+    slot_id = result.scalar()
+    print(slot_id)
+    db.commit()
+
+    return { "slot_id" : slot_id }
+
+    

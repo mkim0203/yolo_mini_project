@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>반출 요청</title>
+<link rel="stylesheet" href="/view/css/common.css">
+
+<style>
+    .history-container {
+        width: 100%;
+        padding: 20px;
+        box-sizing: border-box;
+    }
+
+    .history-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .history-header h2 {
+        margin: 0;
+        font-size: 20px;
+    }
+
+    #totalCount {
+        color: #64748b;
+        font-size: 14px;
+    }
+
+    .history-search {
+        display: flex;
+        align-items: end;
+        gap: 12px;
+        padding: 18px;
+        margin-bottom: 20px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+    }
+
+    .search-item {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+    }
+
+    .search-item label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #475569;
+    }
+
+    .search-item select,
+    .search-item input {
+        height: 38px;
+        padding: 0 10px;
+        border: 1px solid #cbd5e1;
+        border-radius: 5px;
+        font-size: 14px;
+        box-sizing: border-box;
+    }
+
+    .search-keyword {
+        flex: 1;
+    }
+
+    .search-keyword input {
+        width: 100%;
+    }
+
+    .history-search button {
+        height: 38px;
+        min-width: 80px;
+        padding: 0 18px;
+        border: none;
+        border-radius: 5px;
+        background: #2563eb;
+        color: white;
+        cursor: pointer;
+    }
+
+    .history-search button:hover {
+        background: #1d4ed8;
+    }
+
+    .history-table-wrapper {
+        width: 100%;
+        overflow-x: auto;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+    }
+
+    .history-table {
+        width: 100%;
+        min-width: 1100px;
+        border-collapse: collapse;
+        font-size: 13px;
+    }
+
+    .history-table th {
+        padding: 13px 10px;
+        background: #f1f5f9;
+        color: #334155;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .history-table td {
+        padding: 12px 10px;
+        text-align: center;
+        border-top: 1px solid #e2e8f0;
+        white-space: nowrap;
+    }
+
+    .history-table tbody tr:hover {
+        background: #f8fafc;
+    }
+
+    .history-table .empty-message {
+        padding: 40px;
+        color: #94a3b8;
+    }
+</style>
+</head>
+<body>
+
+<div class="layout">
+    <div id="sidebar-container"></div>
+
+    <div class="history-container">
+
+        <div class="history-header">
+            <h2>적재 / 반출 이력</h2>
+            <span id="totalCount">0건</span>
+        </div>
+
+        <!-- 검색 영역 -->
+        <div class="history-search">
+
+            <div class="search-item">
+                <label for="searchOption">조회 기간</label>
+                <select id="searchOption">
+                    <option value="7d" selected>최근 7일</option>
+                    <option value="30d">최근 30일</option>
+                    <option value="all">전체</option>
+                </select>
+            </div>
+
+            <div class="search-item">
+                <label for="maxRow">조회 건수</label>
+                <select id="maxRow">
+                    <option value="30">30건</option>
+                    <option value="50">50건</option>
+                    <option value="100">100건</option>
+                    <option value="200" selected>200건</option>
+                </select>
+            </div>
+
+            <div class="search-item search-keyword">
+                <label for="findText">검색 내용</label>
+                <input
+                    type="text"
+                    id="findText"
+                    placeholder="물품명 입력"
+                >
+            </div>
+
+            <button type="button" onclick="searchHistory()">
+                조회
+            </button>
+
+        </div>
+
+        <!-- 이력 목록 -->
+        <div class="history-table-wrapper">
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th>이력번호</th>
+                        <th>창고</th>
+                        <th>위치</th>
+                        <th>물품명</th>
+                        <th>유통기한</th>
+                        <th>적재 요청번호</th>
+                        <th>반출 요청번호</th>
+                        <th>적재일시</th>
+                        <th>반출일시</th>
+                    </tr>
+                </thead>
+                <tbody id="historyList">
+                    <tr>
+                        <td colspan="9">조회된 이력이 없습니다.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</div>
+
+<script src="/view/js/common.js"></script>
+<script>
+// 이력 조회
+async function searchHistory() {
+
+    const option = document.getElementById("searchOption").value;
+    const maxRow = document.getElementById("maxRow").value;
+    const findText = document.getElementById("findText").value.trim();
+
+    const params = new URLSearchParams({
+        option: option,
+        max_row: maxRow,
+        find_text: findText
+    });
+
+    const tbody = document.getElementById("historyList");
+
+    try {
+
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="9">조회 중입니다.</td>
+            </tr>
+        `;
+
+        const response = await fetch(
+            `${API_BASE_URL}/storage/history?${params.toString()}`
+        );
+
+        if (!response.ok) {
+            throw new Error(`API 오류: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        renderHistory(data);
+
+    } catch (error) {
+
+        console.error("이력 조회 실패:", error);
+
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="9" class="empty-message">
+                    이력 조회 중 오류가 발생했습니다.
+                </td>
+            </tr>
+        `;
+
+        document.getElementById("totalCount").textContent = "0건";
+    }
+}
+
+
+// 이력 목록 출력
+function renderHistory(data) {
+
+    const tbody = document.getElementById("historyList");
+
+    document.getElementById("totalCount").textContent =
+        `${data.length}건`;
+
+    if (!data || data.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="9" class="empty-message">
+                    조회된 이력이 없습니다.
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    tbody.innerHTML = "";
+
+    data.forEach(item => {
+
+        const tr = document.createElement("tr");
+
+        const values = [
+            item.history_id,
+            item.dong ?? "-",
+            item.line_code
+                ? `${item.line_code}-${item.column_no}-${item.floor}층`
+                : "-",
+            item.info ?? "-",
+            item.expiry_date ? formatDate(item.expiry_date) : "-",
+            item.storage_request_id ?? "-",
+            item.release_request_id ?? "-",
+            formatDate(item.input_date),
+            formatDate(item.output_date)
+        ];
+
+        values.forEach(value => {
+            const td = document.createElement("td");
+            td.textContent = value;
+            tr.appendChild(td);
+        });
+
+        tbody.appendChild(tr);
+    });
+}
+
+
+// Enter 키로 검색
+document.getElementById("findText").addEventListener("keydown", event => {
+    if (event.key === "Enter") {
+        searchHistory();
+    }
+});
+
+
+// 최초 화면 진입 시 조회
+document.addEventListener("DOMContentLoaded", () => {
+    searchHistory();
+});
+</script>
+</body>

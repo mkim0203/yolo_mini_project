@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>반출 요청</title>
+<link rel="stylesheet" href="/view/css/common.css">
+
+<style>
+    
+    .main {
+        padding: 30px;
+    }
+
+
+    .panel {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 24px;
+        margin-top: 20px;
+    }
+
+    .search-panel {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        width: 100%;
+        max-width: 400px;
+        min-width: 400px;
+        box-sizing: border-box;
+    }
+
+    .search-area {
+        /* display: flex;
+        gap: 10px; */
+        box-sizing: border-box;
+        min-width: 0;
+    }
+
+    .search-area input {
+        flex: 1;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
+
+    .search-area button,
+    .release-btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    .product-info {
+        display: flex;
+        gap: 24px;
+        margin: 20px 0;
+    }
+
+    .image-area {
+        width: 180px;
+        height: 180px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        overflow: hidden;
+    }
+
+    .image-area img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    .info-area p {
+        margin: 12px 0;
+    }
+
+    .info-area {
+        display: grid;
+        grid-template-columns: repeat(1, 1fr);
+        gap: 12px;
+        /* padding: 18px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0; 
+        border-radius: 10px;*/
+    }
+
+    .info-item {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        padding: 14px;
+        background: #ffffff;
+        /* border: 1px solid #e5e7eb; */
+        /* border-radius: 8px; */
+    }
+
+    .info-label {
+        font-size: 12px;
+        color: #64748b;
+        font-weight: 600;
+    }
+
+    .info-value {
+        font-size: 15px;
+        color: #1e293b;
+        font-weight: 600;
+        word-break: break-word;
+    }
+
+    @media (max-width: 600px) {
+        .info-area {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .status-message {
+        font-weight: bold;
+    }
+
+    .status-message.success {
+        color: #198754;
+    }
+
+    .status-message.warning {
+        color: #dc3545;
+    }
+
+    .release-btn {
+        width: 100%;
+        background: #2563eb;
+        color: white;
+    }
+
+    .release-btn:disabled {
+        background: #aaa;
+        cursor: not-allowed;
+    }
+
+    .error-message {
+        color: #dc3545;
+    }
+</style>
+</head>
+<body data-page="release">
+    
+<div class="layout">
+    <div id="sidebar-container"></div>
+    <main class="main">
+        <h1>반출 요청</h1>
+        <p>적재 요청 번호를 입력하여 상품을 조회합니다.</p>
+
+        <section class="panel search-panel">
+            <h3>적재 요청 번호 조회</h3>
+
+            <div class="search-area">
+                <input
+                    type="number"
+                    id="storageRequestId"
+                    placeholder="적재 요청 번호 입력"
+                    min="0"
+                >
+                <button type="button" id="searchBtn">
+                    조회
+                </button>
+            </div>
+        </section>
+
+        <section class="panel" id="productPanel" hidden>
+            <h3>상품 정보</h3>
+
+            <div class="product-info">
+                
+
+                <div class="info-area">
+                    <!-- <div class="info-item">
+                        <span class="info-label">적재 요청 번호</span>
+                        <span class="info-value" id="requestId">-</span>
+                    </div> -->
+
+                    <div class="info-item">
+                        <span class="info-label">상품 정보</span>
+                        <span class="info-value" id="info">-</span>
+                    </div>
+
+                    <div class="info-item">
+                        <span class="info-label">유통기한</span>
+                        <span class="info-value" id="expiryDate">-</span>
+                    </div>
+
+                    <!-- <div class="info-item">
+                        <span class="info-label">보관 위치</span>
+                        <span class="info-value" id="slotInfo">-</span>
+                    </div> -->
+                </div>
+
+                <div class="image-area">
+                    <img id="productImage" alt="상품 이미지">
+                </div>
+            </div>
+
+            <p id="statusMessage" class="status-message"></p>
+
+            <button
+                type="button"
+                id="releaseBtn"
+                class="release-btn"
+            >
+                반출 요청
+            </button>
+        </section>
+
+        <p id="errorMessage" class="error-message"></p>
+    </main>
+</div>
+
+<script src="/view/js/common.js"></script>
+<script>
+let currentProduct = null;
+
+const requestIdInput = document.getElementById("storageRequestId");
+const searchBtn = document.getElementById("searchBtn");
+const releaseBtn = document.getElementById("releaseBtn");
+
+const productPanel = document.getElementById("productPanel");
+const errorMessage = document.getElementById("errorMessage");
+
+// 상품 조회
+searchBtn.addEventListener("click", searchProduct);
+
+async function searchProduct() {
+    const requestId = requestIdInput.value.trim();
+
+    productPanel.hidden = true;
+    errorMessage.textContent = "";
+    currentProduct = null;
+
+    if (!requestId || Number(requestId) < 0) {
+        errorMessage.textContent = "적재 요청 번호를 입력해주세요.";
+        return;
+    }
+
+    try {
+        const response = await fetch(
+            `${API_BASE_URL}/storage/${requestId}?option=request`
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.detail || "상품 조회에 실패했습니다.");
+        }
+
+        currentProduct = data;
+
+        // document.getElementById("requestId").textContent =
+        //     data.storage_request_id;
+
+        document.getElementById("info").textContent =
+            data.info;
+
+        document.getElementById("expiryDate").textContent =
+            formatDate(data.expiry_date);
+
+        // document.getElementById("slotInfo").textContent =
+        //     data.slot_info;
+
+        const image = document.getElementById("productImage");
+
+        if (data.image_data) {
+            image.src = `data:${data.image_type};base64,${data.image_data}`;
+            image.hidden = false;
+        } else {
+            image.removeAttribute("src");
+            image.hidden = true;
+        }
+
+        const statusMessage =
+            document.getElementById("statusMessage");
+
+        if (data.release_requested) {
+            statusMessage.textContent =
+                "이미 반출요청된 항목입니다.";
+
+            statusMessage.className =
+                "status-message warning";
+
+            releaseBtn.disabled = true;
+        } else {
+            statusMessage.textContent =
+                "반출 요청이 가능합니다.";
+
+            statusMessage.className =
+                "status-message success";
+
+            releaseBtn.disabled = false;
+        }
+
+        productPanel.hidden = false;
+
+    } catch (error) {
+        errorMessage.textContent = error.message;
+    }
+}
+
+// 반출 요청
+releaseBtn.addEventListener("click", async () => {
+    if (!currentProduct || currentProduct.release_requested) {
+        return;
+    }
+
+    const confirmed = confirm(
+        "해당 상품을 반출 요청하시겠습니까?"
+    );
+
+    if (!confirmed) {
+        return;
+    }
+
+    try {
+        releaseBtn.disabled = true;
+
+        const response = await fetch(
+            `${API_BASE_URL}/release`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    slot_id: currentProduct.slot_id
+                })
+            }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                data.detail || "반출 요청에 실패했습니다."
+            );
+        }
+
+        alert("반출 요청이 완료되었습니다.");
+
+        // 요청 완료 후 상품 정보 재조회
+        await searchProduct();
+
+    } catch (error) {
+        alert(error.message);
+        releaseBtn.disabled = false;
+    }
+});    
+
+</script>
+</body>

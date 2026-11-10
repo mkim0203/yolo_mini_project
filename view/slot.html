@@ -6,40 +6,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Warehouse Management</title>
 
+<link rel="stylesheet" href="/view/css/common.css">
+
 <style>
 * { box-sizing: border-box; }
-
-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: #f3f5f8;
-    color: #263445;
-}
-
-.layout { display: flex; min-height: 100vh; }
-
-.sidebar {
-    width: 220px;
-    flex-shrink: 0;
-    background: #243449;
-    color: white;
-    padding: 25px 15px;
-}
-
-.sidebar h2 { font-size: 20px; margin: 0 0 35px; }
-
-.menu {
-    padding: 13px;
-    margin-bottom: 7px;
-    border-radius: 6px;
-    cursor: pointer;
-    color: #cbd5e1;
-}
-
-.menu.active, .menu:hover {
-    background: #3b506b;
-    color: white;
-}
 
 .main {
     flex: 1;
@@ -313,7 +283,6 @@ button:disabled { background: #aeb8c4; cursor: not-allowed; }
 }
 
 @media(max-width: 650px) {
-    .sidebar { display: none; }
     .summary { grid-template-columns: repeat(2, 1fr); }
     .main { padding: 12px; }
     .scene { justify-content: flex-start; }
@@ -321,26 +290,17 @@ button:disabled { background: #aeb8c4; cursor: not-allowed; }
 </style>
 </head>
 
-<body>
+<body data-page="slot">
 
 <div class="layout">
 
-    <aside class="sidebar">
-        <h2>Warehouse</h2>
-        <div class="menu">대시보드</div>
-        <div class="menu active">창고 현황</div>
-        <div class="menu">적재 요청</div>
-        <div class="menu">적재 요청 현황</div>
-        <div class="menu">반출 요청</div>
-        <div class="menu">만료 대상</div>
-        <div class="menu">적재·반출 이력</div>
-    </aside>
+    <div id="sidebar-container"></div>
 
     <main class="main">
 
         <div class="header">
             <h1>창고 현황</h1>
-            <span>Warehouse Management</span>
+            <!-- <span>Warehouse Management</span> -->
         </div>
 
         <div class="filter-section">
@@ -422,8 +382,8 @@ button:disabled { background: #aeb8c4; cursor: not-allowed; }
                 </div>
 
                 <div class="detail-row">
-                    <span>적재 물품</span>
-                    <strong id="product">-</strong>
+                    <span>요청 번호</span>
+                    <strong id="request_id">-</strong>
                 </div>
 
                 <div class="detail-row">
@@ -455,13 +415,13 @@ button:disabled { background: #aeb8c4; cursor: not-allowed; }
     </main>
 </div>
 
+<script src="/view/js/common.js"></script>
+
 <script>
 
 // --------------------------------------------------
 // API 설정 및 창고 정보
 // --------------------------------------------------
-
-const API_BASE_URL = "http://localhost:8000";
 
 let warehouseInfos = [];
 let selectedWarehouseId = null;
@@ -908,12 +868,12 @@ function moveSlot(target) {
     }
 
     target.status = "used";
-    target.product = selectedSlot.product;
+    // target.product = selectedSlot.product;
     target.expiry = selectedSlot.expiry;
     target.image = selectedSlot.image;
 
     selectedSlot.status = "empty";
-    selectedSlot.product = null;
+    // selectedSlot.product = null;
     selectedSlot.expiry = null;
     selectedSlot.image = null;
 
@@ -949,7 +909,7 @@ function renderDetail() {
     document.getElementById("status").textContent =
         slot ? (statusText[slot.status] || slot.status) : "-";
 
-    document.getElementById("product").textContent = "-";
+    document.getElementById("request_id").textContent = "-";
     document.getElementById("expiry").textContent = "-";
 
     const image = document.getElementById("productImage");
@@ -1014,7 +974,7 @@ function renderSlotDetail(data) {
 
     if (data === null) {
         document.getElementById("slot_info").textContent = "-";
-        document.getElementById("product").textContent = "-";
+        document.getElementById("request_id").textContent = "-";
         document.getElementById("expiry").textContent = "-";
         document.getElementById("status").textContent =
             selectedSlot ? (statusText[selectedSlot.status] || selectedSlot.status) : "-";
@@ -1030,11 +990,11 @@ function renderSlotDetail(data) {
     document.getElementById("slot_info").textContent =
         data.slot_info ?? "-";
 
-    document.getElementById("product").textContent =
-        data.product ?? "-";
+    document.getElementById("request_id").textContent =
+        data.request_id ?? "-";
 
     document.getElementById("expiry").textContent =
-        data.expiry_date ?? "-";
+        formatDate(data.expiry_date) ?? "-";
 
     document.getElementById("status").textContent =
         selectedSlot ? (statusText[selectedSlot.status] || selectedSlot.status) : "-";

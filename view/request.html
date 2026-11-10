@@ -6,46 +6,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Warehouse Management - 적재 요청</title>
 
+<link rel="stylesheet" href="/view/css/common.css">
+
 <style>
 * { box-sizing: border-box; }
-
-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: #f3f5f8;
-    color: #263445;
-}
-
-.layout {
-    display: flex;
-    min-height: 100vh;
-}
-
-.sidebar {
-    width: 220px;
-    flex-shrink: 0;
-    background: #243449;
-    color: white;
-    padding: 25px 15px;
-}
-
-.sidebar h2 {
-    font-size: 20px;
-    margin: 0 0 35px;
-}
-
-.menu {
-    padding: 13px;
-    margin-bottom: 7px;
-    border-radius: 6px;
-    cursor: pointer;
-    color: #cbd5e1;
-}
-
-.menu.active, .menu:hover {
-    background: #3b506b;
-    color: white;
-}
 
 .main {
     flex: 1;
@@ -201,10 +165,6 @@ button.secondary:hover {
 }
 
 @media(max-width: 650px) {
-    .sidebar {
-        display: none;
-    }
-
     .main {
         padding: 12px;
     }
@@ -212,26 +172,17 @@ button.secondary:hover {
 </style>
 </head>
 
-<body>
+<body data-page="request">
 
 <div class="layout">
 
-    <aside class="sidebar">
-        <h2>Warehouse</h2>
-        <div class="menu">대시보드</div>
-        <div class="menu">창고 현황</div>
-        <div class="menu active">적재 요청</div>
-        <div class="menu">적재 요청 현황</div>
-        <div class="menu">반출 요청</div>
-        <div class="menu">만료 대상</div>
-        <div class="menu">적재·반출 이력</div>
-    </aside>
+    <div id="sidebar-container"></div>
 
     <main class="main">
 
         <div class="header">
             <h1>적재 요청</h1>
-            <span>Warehouse Management</span>
+            <!-- <span>Warehouse Management</span> -->
         </div>
 
         <div class="content" id="content-body">
@@ -320,9 +271,10 @@ button.secondary:hover {
     </main>
 </div>
 
-<script>
-const API_BASE_URL = "http://localhost:8000";
+<script src="/view/js/common.js"></script>
 
+
+<script>
 const form = document.getElementById("storageForm");
 const imageFile = document.getElementById("imageFile");
 const previewImage = document.getElementById("previewImage");
@@ -434,7 +386,7 @@ form.addEventListener("submit", async function(e) {
 
     try {
         const response = await fetch(
-            `${API_BASE_URL}/storage/request`,
+            `${API_BASE_URL}/requests/request`,
             {
                 method: "POST",
                 body: formData

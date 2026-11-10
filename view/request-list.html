@@ -5,49 +5,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>적재 요청 현황</title>
+<link rel="stylesheet" href="/view/css/common.css">
+
 <style>
     * { box-sizing: border-box; }
-
-    body {
-        margin: 0;
-        font-family: Arial, "Malgun Gothic", sans-serif;
-        background: #f4f6fa;
-        color: #263248;
-    }
-
-    .sidebar {
-        position: fixed;
-        width: 220px;
-        height: 100vh;
-        background: #17243b;
-        color: white;
-        padding: 25px 15px;
-    }
 
     .logo {
         font-size: 21px;
         font-weight: bold;
         padding: 5px 12px 35px;
     }
-
-    .menu a {
-        display: block;
-        color: #bdc8d9;
-        text-decoration: none;
-        padding: 13px 15px;
-        margin-bottom: 5px;
-        border-radius: 6px;
-        font-size: 14px;
-    }
-
-    .menu a:hover,
-    .menu a.active {
-        background: #2d4264;
-        color: white;
-    }
-
+    
     .main {
-        margin-left: 220px;
         padding: 30px;
     }
 
@@ -92,7 +61,7 @@
 
     .content {
         display: grid;
-        grid-template-columns: minmax(500px, 1.6fr) minmax(300px, 1fr);
+        grid-template-columns: minmax(700px, 1.6fr) minmax(300px, 1fr);
         gap: 20px;
         align-items: start;
     }
@@ -214,11 +183,7 @@
     }
 
     @media (max-width: 700px) {
-        .sidebar {
-            width: 170px;
-        }
         .main {
-            margin-left: 170px;
             padding: 20px;
         }
         .summary {
@@ -230,73 +195,62 @@
     }
 </style>
 </head>
-<body>
+<body data-page="request-list">
+    
+<div class="layout">
+    <div id="sidebar-container"></div>
 
-<aside class="sidebar">
-    <div class="logo">Warehouse</div>
-    <nav class="menu">
-        <a href="#">대시보드</a>
-        <a href="#">창고 현황</a>
-        <a href="#">적재 요청</a>
-        <a href="#" class="active">적재 요청 현황</a>
-        <a href="#">반출 요청</a>
-        <a href="#">만료 대상</a>
-        <a href="#">적재·반출 이력</a>
-    </nav>
-</aside>
-
-<main class="main">
-    <div class="header">
-        <h2>적재 요청 현황</h2>
-        <span>Warehouse Management</span>
-    </div>
-
-    <section class="summary">
-        <div class="summary-card">
-            <div class="label">전체 요청</div>
-            <div class="value" id="totalCount">0</div>
+    <main class="main">
+        <div class="header">
+            <h2>적재 요청 현황</h2>
         </div>
-        <div class="summary-card">
-            <div class="label">선택된 요청</div>
-            <div class="value" id="selectedCount">-</div>
-        </div>
-    </section>
 
-    <section class="content">
-        <!-- 요청 목록 -->
-        <div class="panel">
-            <h3>적재 요청 목록</h3>
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>요청 번호</th>
-                            <th>상품 정보</th>
-                            <th>유통기한</th>
-                            <th>요청일</th>
-                        </tr>
-                    </thead>
-                    <tbody id="requestList"></tbody>
-                </table>
+        <section class="summary">
+            <div class="summary-card">
+                <div class="label">전체 요청</div>
+                <div class="value" id="totalCount">0</div>
             </div>
-        </div>
+            <div class="summary-card">
+                <div class="label">선택된 요청</div>
+                <div class="value" id="selectedCount">-</div>
+            </div>
+        </section>
 
-        <!-- 상품 상세 정보 -->
-        <div class="panel">
-            <h3>상품 상세 정보</h3>
-
-            <div id="detailContent">
-                <div class="empty-detail">
-                    목록에서 상품을 선택해주세요.
+        <section class="content">
+            <!-- 요청 목록 -->
+            <div class="panel">
+                <h3>적재 요청 목록</h3>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>요청 번호</th>
+                                <th>상품 정보</th>
+                                <th>유통기한</th>
+                                <th>요청일</th>
+                            </tr>
+                        </thead>
+                        <tbody id="requestList"></tbody>
+                    </table>
                 </div>
             </div>
-        </div>
-    </section>
-</main>
+
+            <!-- 상품 상세 정보 -->
+            <div class="panel">
+                <h3>상품 상세 정보</h3>
+
+                <div id="detailContent">
+                    <div class="empty-detail">
+                        목록에서 상품을 선택해주세요.
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+<script src="/view/js/common.js"></script>
 
 <script>
-const API_BASE_URL = "http://localhost:8000";
-
     // 화면 확인용 샘플 데이터
     // 실제 API 연동 시 이 배열을 API 응답 데이터로 교체
     let requestData = [];
@@ -325,8 +279,8 @@ const API_BASE_URL = "http://localhost:8000";
                 onclick="selectRequest(${item.request_id})">
                 <td class="request-id">#${item.request_id}</td>
                 <td class="product-name">${item.info}</td>
-                <td>${item.expiry_date}</td>
-                <td>${item.create_date}</td>
+                <td>${formatDate(item.expiry_date)}</td>
+                <td>${formatDate(item.create_date)}</td>
             </tr>
         `).join("");
 
@@ -373,6 +327,8 @@ const API_BASE_URL = "http://localhost:8000";
             imageData = '';
         }
 
+        let ed = formatDate(item.expiry_date);
+        let cd = formatDate(item.create_date);
 
         document.getElementById("detailContent").innerHTML = `
             <div class="detail-image">
@@ -398,12 +354,12 @@ const API_BASE_URL = "http://localhost:8000";
 
             <div class="detail-row">
                 <span class="label">유통기한</span>
-                <span class="value">${item.expiry_date}</span>
+                <span class="value">${ed}</span>
             </div>
 
             <div class="detail-row">
                 <span class="label">요청일</span>
-                <span class="value">${item.create_date}</span>
+                <span class="value">${cd}</span>
             </div>
 
             <div class="detail-row">

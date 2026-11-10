@@ -37,7 +37,7 @@ class Warehouse(Base):
     )
 
     create_date = Column(
-        DateTime,
+        DateTime(timezone=True),
         nullable=True,
         server_default=text("CURRENT_TIMESTAMP")
     )
@@ -71,7 +71,7 @@ class WarehouseSlot(Base):
     status = Column(String(20), nullable=False)
 
     create_date = Column(
-        DateTime,
+        DateTime(timezone=True),
         nullable=True,
         server_default=text("CURRENT_TIMESTAMP")
     )
@@ -106,10 +106,10 @@ class StorageInfo(Base):
 
     image_data = Column(LargeBinary, nullable=True)
 
-    expiry_date = Column(DateTime, nullable=False)
+    expiry_date = Column(DateTime(timezone=True), nullable=False)
 
     create_date = Column(
-        DateTime,
+        DateTime(timezone=True),
         nullable=True,
         server_default=text("CURRENT_TIMESTAMP")
     )
@@ -132,22 +132,22 @@ class StorageHistory(Base):
 
     info = Column(String(100), nullable=True)
 
-    expiry_date = Column(DateTime, nullable=False)
+    expiry_date = Column(DateTime(timezone=True), nullable=False)
 
     storage_request_id = Column(Integer, nullable=True)
 
     release_request_id = Column(Integer, nullable=True)
 
     input_date = Column(
-        DateTime,
+        DateTime(timezone=True),
         nullable=True,
         server_default=text("CURRENT_TIMESTAMP")
     )
 
-    output_date = Column(DateTime, nullable=True)
+    output_date = Column(DateTime(timezone=True), nullable=True)
 
     create_date = Column(
-        DateTime,
+        DateTime(timezone=True),
         nullable=True,
         server_default=text("CURRENT_TIMESTAMP")
     )
@@ -167,7 +167,7 @@ class StorageRequest(Base):
     )
 
     expiry_date = Column(
-        DateTime,
+        DateTime(timezone=True),
         nullable=False
     )
 
@@ -182,7 +182,7 @@ class StorageRequest(Base):
     )
 
     create_date = Column(
-        DateTime,
+        DateTime(timezone=True),
         nullable=True,
         server_default=text("CURRENT_TIMESTAMP")
     )
@@ -202,7 +202,7 @@ class ReleaseRequest(Base):
     info = Column(String(100), nullable=True)
 
     create_date = Column(
-        DateTime,
+        DateTime(timezone=True),
         nullable=True,
         server_default=text("CURRENT_TIMESTAMP")
     )    

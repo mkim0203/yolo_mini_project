@@ -10,3 +10,5 @@ class SlotDetail(BaseModel):
     image_data: str | None=None
     request_id: int | None=None
     expiry_date: datetime | None=None
+    food_score: float | None=None
+    processing_status: str | None=None

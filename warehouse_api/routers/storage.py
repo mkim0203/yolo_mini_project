@@ -120,6 +120,8 @@ async def search_history(
             StorageHistory.storage_request_id,
             StorageHistory.release_request_id,
             StorageHistory.input_date,
+            StorageHistory.food_score,
+            StorageHistory.processing_status,
             StorageHistory.output_date,
             StorageHistory.create_date
         )

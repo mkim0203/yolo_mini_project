@@ -252,6 +252,8 @@
                                 <th>상품 정보</th>
                                 <th>유통기한</th>
                                 <th>요청일</th>
+                                <th>분류 score</th>
+                                <th>분류 상태</th>
                             </tr>
                         </thead>
                         <tbody id="requestList"></tbody>
@@ -305,6 +307,8 @@
                 <td class="product-name">${item.info}</td>
                 <td>${formatDate(item.expiry_date)}</td>
                 <td>${formatDate(item.create_date)}</td>
+                <td>${item.food_score ?? '-'}</td>
+                <td>${item.classification_status ?? '-'}</td>
             </tr>
         `).join("");
 
@@ -389,6 +393,16 @@
             <div class="detail-row">
                 <span class="label">이미지 형식</span>
                 <span class="value">${item.image_type || "-"}</span>
+            </div>
+
+            <div class="detail-row">
+                <span class="label">분류 score</span>
+                <span class="value">${item.food_score || "-"}</span>
+            </div>
+
+            <div class="detail-row">
+                <span class="label">분류 상태</span>
+                <span class="value">${item.classification_status || "-"}</span>
             </div>
 
             <button class="complete-btn"

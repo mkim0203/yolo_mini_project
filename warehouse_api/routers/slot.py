@@ -22,7 +22,9 @@ def get_slot(slot_id: int, db: Session = Depends(get_db)):
             StorageInfo.image_type,
             StorageInfo.image_data,
             StorageInfo.request_id,
-            StorageInfo.expiry_date
+            StorageInfo.expiry_date,
+            StorageInfo.food_score,
+            StorageInfo.processing_status
         )
         .filter(StorageInfo.slot_id == slot_id)
         .first()
@@ -41,5 +43,7 @@ def get_slot(slot_id: int, db: Session = Depends(get_db)):
         #image_data=item.image_data,
         image_data = base64.b64encode(result.image_data).decode("utf-8") if result.image_data else None,
         request_id = result.request_id,
-        expiry_date=result.expiry_date
+        expiry_date=result.expiry_date,
+        food_score=result.food_score,
+        processing_status=result.processing_status
     )

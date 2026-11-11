@@ -7,6 +7,8 @@ class StorageRequestItem(BaseModel):
     info: str
     image_type: str| None=None
     expiry_date: datetime | None=None
+    food_score: float | None=None,
+    classification_status: str | None=None,
     create_date: datetime | None=None
 
 class StorageRequestResponse(BaseModel):
@@ -19,6 +21,8 @@ class StorageRequestDetail(BaseModel):
     image_type: str | None=None
     image_data: str | None=None
     expiry_date: datetime | None=None
+    food_score: float | None=None,
+    classification_status: str | None=None,
     create_date: datetime | None=None
 
 class ReleaseResponse(BaseModel):
@@ -31,20 +35,6 @@ class ReleaseResponse(BaseModel):
     create_date: datetime | None=None
 
 class HistoryResponse(BaseModel):
-    """
-        StorageHistory.history_id,
-        Warehouse.dong,
-        WarehouseSlot.line_code,
-        WarehouseSlot.column_no,
-        WarehouseSlot.floor,
-        StorageHistory.info,
-        StorageHistory.expiry_date,
-        StorageHistory.storage_request_id,
-        StorageHistory.release_request_id,
-        StorageHistory.input_date,
-        StorageHistory.output_date,
-        StorageHistory.create_date
-    """
     history_id: int
     dong: str | None=None
     line_code: str | None=None
@@ -55,6 +45,8 @@ class HistoryResponse(BaseModel):
     storage_request_id: int | None=None
     release_request_id: int | None=None
     input_date: datetime | None=None
+    food_score: float | None=None
+    processing_status: str | None=None
     output_date: datetime | None=None
     create_date: datetime | None=None
 

@@ -4,6 +4,7 @@ from sqlalchemy import (
     String,
     DateTime,
     CHAR,
+    Float,
     LargeBinary,
     ForeignKey,
     UniqueConstraint,
@@ -108,6 +109,9 @@ class StorageInfo(Base):
 
     expiry_date = Column(DateTime(timezone=True), nullable=False)
 
+    food_score = Column(Float, nullable=True)
+    processing_status = Column(String(20), nullable=True)
+
     create_date = Column(
         DateTime(timezone=True),
         nullable=True,
@@ -138,6 +142,9 @@ class StorageHistory(Base):
 
     release_request_id = Column(Integer, nullable=True)
 
+    food_score = Column(Float, nullable=True)
+    processing_status = Column(String(20), nullable=True)
+
     input_date = Column(
         DateTime(timezone=True),
         nullable=True,
@@ -161,25 +168,16 @@ class StorageRequest(Base):
         autoincrement=True
     )
 
-    info = Column(
-        String(100),
-        nullable=True
-    )
+    info = Column(String(100), nullable=True)
 
-    expiry_date = Column(
-        DateTime(timezone=True),
-        nullable=False
-    )
+    expiry_date = Column(DateTime(timezone=True), nullable=False)
 
-    image_type = Column(
-        String(50),
-        nullable=True
-    )
+    image_type = Column(String(50), nullable=True)
 
-    image_data = Column(
-        LargeBinary,
-        nullable=True
-    )
+    image_data = Column(LargeBinary, nullable=True)
+
+    food_score = Column(Float, nullable=True)
+    classification_status = Column(String(20), nullable=True)
 
     create_date = Column(
         DateTime(timezone=True),

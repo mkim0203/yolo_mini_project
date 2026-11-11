@@ -87,6 +87,8 @@ async def search_requests( db: Session = Depends(get_db)):
             StorageRequest.image_type,
             StorageRequest.image_data,
             StorageRequest.expiry_date,
+            StorageRequest.food_score,
+            StorageRequest.classification_status,
             StorageRequest.create_date
         )
         .order_by(
@@ -114,7 +116,9 @@ async def search_requests(request_id:int, db: Session = Depends(get_db)):
             StorageRequest.info,
             StorageRequest.image_type,
             StorageRequest.image_data,
-            StorageRequest.expiry_date
+            StorageRequest.expiry_date,
+            StorageRequest.food_score,
+            StorageRequest.classification_status,
         )
         .filter(StorageRequest.request_id == request_id)
         .first()
@@ -131,7 +135,9 @@ async def search_requests(request_id:int, db: Session = Depends(get_db)):
         image_type=result.image_type,
         #image_data=item.image_data,
         image_data = base64.b64encode(result.image_data).decode("utf-8") if result.image_data else None,
-        expiry_date=result.expiry_date
+        expiry_date=result.expiry_date,
+        food_score=result.food_score,
+        classification_status=result.classification_status
     )
 
 

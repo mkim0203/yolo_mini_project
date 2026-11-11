@@ -28,3 +28,6 @@ psycopg[binary]
 # fast api 서비스 실행
 uvicorn
 python-multipart
+
+# 이미지 분석
+tensorflow

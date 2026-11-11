@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from datetime import datetime, timedelta, timezone
 from database.connection import get_db
 from database.models import StorageInfo, ReleaseRequest, StorageHistory, Warehouse, WarehouseSlot
-from schemas.storage import ReleaseResponse, HistoryResponse
+from schemas.storage import ReleaseResponse, HistoryResponse, ExpriyResponse
 
 import base64
 
@@ -163,11 +163,75 @@ async def search_history(
 
     items = [
         HistoryResponse(**row._mapping)
-    for row in result
-]
+        for row in result
+    ]
 
     return items
     
+
+
+@router.get("/expiry", description="유통 기한 만료 예정인 항목들 조회")
+async def search_expiry(
+    option: int = Query(7, le=30),
+    db: Session = Depends(get_db)
+):
+    """
+    select 
+        w.dong
+        , s.line_code
+        , s.column_no
+        , s.floor
+        , i.storage_id
+        , i.slot_id
+        , i.info
+        , i.expiry_date
+    from storage_info i
+    left outer join warehouse_slot s on i.slot_id = s.slot_id
+    left outer join warehouse w on s.warehouse_id = w.warehouse_id
+    """
+    
+    query = (
+        db.query(
+            Warehouse.dong,
+            WarehouseSlot.line_code,
+            WarehouseSlot.column_no,
+            WarehouseSlot.floor,
+            StorageInfo.storage_id,
+            StorageInfo.slot_id,
+            StorageInfo.info,
+            StorageInfo.expiry_date
+        )
+        .select_from(StorageInfo)
+        .outerjoin(
+            WarehouseSlot,
+            StorageInfo.slot_id == WarehouseSlot.slot_id
+        )
+        .outerjoin(
+            Warehouse,
+            WarehouseSlot.warehouse_id == Warehouse.warehouse_id
+        )
+    )
+
+    # 1. 날짜 조건
+    now = datetime.now(timezone.utc)
+    target_date = now + timedelta(days=option)
+    query = query.filter(StorageInfo.expiry_date <= target_date)
+
+    # 3. 정렬
+    result = (
+        query
+        .order_by(StorageInfo.expiry_date.desc())
+        .all()
+    )
+
+    items = [
+        ExpriyResponse(**row._mapping)
+        for row in result
+    ]
+
+    return items
+
+
 
 @router.get("/{id}", description="창고 적재 확인. option에 따라 구분하여 조회함.")
 async def search_storage(id:int, option:str = "request", db: Session = Depends(get_db)):
@@ -207,6 +271,7 @@ async def search_storage(id:int, option:str = "request", db: Session = Depends(g
     return ReleaseResponse(
         release_requested=False if check_result is None else True,
         info=result.info,
+        slot_id=result.slot_id,
         image_type=result.image_type,
         image_data=(
             base64.b64encode(result.image_data).decode("utf-8")

@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>유통기한 만료 예정</title>
+
+    <link rel="stylesheet" href="/view/css/common.css">
+
+    <style>
+        * { box-sizing: border-box; }
+
+        .main {
+            padding: 30px;
+        }
+
+        .header {
+            margin-bottom: 25px;
+        }
+
+        .header h2 {
+            margin: 0 0 7px;
+            font-size: 25px;
+        }
+
+        .header span {
+            color: #8993a4;
+            font-size: 13px;
+        }
+
+        .summary {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .summary-card {
+            background: white;
+            border-radius: 9px;
+            padding: 18px 22px;
+            flex: 1;
+            box-shadow: 0 2px 7px rgba(0,0,0,.04);
+        }
+
+        .summary-card .label {
+            color: #8993a4;
+            font-size: 13px;
+        }
+
+        .summary-card .value {
+            font-size: 25px;
+            font-weight: bold;
+            margin-top: 8px;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: minmax(700px, 1.6fr) minmax(300px, 1fr);
+            gap: 20px;
+            align-items: start;
+        }
+
+        .panel {
+            background: white;
+            border-radius: 9px;
+            padding: 22px;
+            box-shadow: 0 2px 7px rgba(0,0,0,.04);
+            min-width: 0;
+        }
+
+        .panel h3 {
+            margin: 0 0 18px;
+            font-size: 17px;
+        }
+
+        .search-area {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+
+        .search-area label {
+            color: #68758a;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        .search-area select {
+            padding: 9px 12px;
+            border: 1px solid #dce1e8;
+            border-radius: 5px;
+            min-width: 100px;
+        }
+
+        .search-area button {
+            padding: 9px 20px;
+            border: none;
+            border-radius: 5px;
+            background: #2563eb;
+            color: white;
+            cursor: pointer;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        th {
+            background: #f5f7fa;
+            color: #68758a;
+            font-weight: 600;
+            padding: 13px 10px;
+            border-bottom: 1px solid #e6eaf0;
+            text-align: center;
+        }
+
+        td {
+            padding: 14px 10px;
+            border-bottom: 1px solid #edf0f4;
+            text-align: center;
+        }
+
+        tbody tr {
+            cursor: pointer;
+        }
+
+        tbody tr:hover {
+            background: #f6f8fc;
+        }
+
+        tbody tr.selected {
+            background: #eaf1ff;
+        }
+
+        .product-name {
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .detail-image {
+            width: 100%;
+            height: 230px;
+            border-radius: 8px;
+            background: #f3f5f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .detail-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .no-image {
+            color: #9aa4b2;
+            font-size: 14px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 13px 0;
+            border-bottom: 1px solid #edf0f4;
+            font-size: 14px;
+            gap: 15px;
+        }
+
+        .detail-row .label {
+            color: #8993a4;
+            flex-shrink: 0;
+        }
+
+        .detail-row .value {
+            font-weight: 600;
+            text-align: right;
+            word-break: break-word;
+        }
+
+        .empty-detail {
+            text-align: center;
+            color: #9aa4b2;
+            padding: 70px 10px;
+            font-size: 14px;
+        }
+
+        .error-message {
+            color: #dc3545;
+            margin-top: 15px;
+            font-size: 13px;
+        }
+
+        @media (max-width: 1100px) {
+            .content {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .main {
+                padding: 15px;
+                max-width: none;
+            }
+        }
+
+        @media (max-width: 700px) {
+            .main {
+                padding: 20px;
+            }
+
+            .summary {
+                flex-wrap: wrap;
+            }
+
+            .summary-card {
+                min-width: 130px;
+            }
+        }
+    </style>
+</head>
+
+<body data-page="expiry">
+
+<div class="layout">
+    <div id="sidebar-container"></div>
+
+    <main class="main">
+
+        <div class="header">
+            <h2>유통기한 만료 예정</h2>
+            <span>유통기한이 임박한 상품을 조회합니다.</span>
+        </div>
+
+        <section class="summary">
+            <div class="summary-card">
+                <div class="label">전체 만료 예정</div>
+                <div class="value" id="totalCount">0</div>
+            </div>
+
+            <div class="summary-card">
+                <div class="label">선택된 상품</div>
+                <div class="value" id="selectedCount">-</div>
+            </div>
+        </section>
+
+        <section class="content">
+
+            <!-- 만료 예정 목록 -->
+            <div class="panel">
+                <h3>만료 예정 목록</h3>
+
+                <div class="search-area">
+                    <label for="expiryOption">조회 기간</label>
+
+                    <select id="expiryOption">
+                        <option value="1">1일</option>
+                        <option value="2">2일</option>
+                        <option value="3">3일</option>
+                        <option value="4">4일</option>
+                        <option value="5">5일</option>
+                        <option value="6">6일</option>
+                        <option value="7" selected>7일</option>
+                    </select>
+
+                    <button type="button" id="searchBtn">
+                        조회
+                    </button>
+                </div>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>창고</th>
+                                <th>Line</th>
+                                <th>Column</th>
+                                <th>Floor</th>
+                                <th>상품 정보</th>
+                                <th>유통기한</th>
+                                <th>남은 기간</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="expiryList">
+                            <tr>
+                                <td colspan="6">
+                                    조회 중입니다.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 상품 상세 정보 -->
+            <div class="panel">
+                <h3>상품 상세 정보</h3>
+
+                <div id="detailContent">
+                    <div class="empty-detail">
+                        목록에서 상품을 선택해주세요.
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <p id="errorMessage" class="error-message"></p>
+
+    </main>
+</div>
+
+<script src="/view/js/common.js"></script>
+<script>
+let expiryItems = [];
+let selectedSlotId = null;
+
+const expiryOption = document.getElementById("expiryOption");
+const searchBtn = document.getElementById("searchBtn");
+const expiryList = document.getElementById("expiryList");
+
+const totalCount = document.getElementById("totalCount");
+const selectedCount = document.getElementById("selectedCount");
+
+const detailContent = document.getElementById("detailContent");
+const errorMessage = document.getElementById("errorMessage");
+
+
+// 만료 예정 목록 조회
+async function loadExpiryList() {
+    const option = expiryOption.value;
+
+    errorMessage.textContent = "";
+    selectedSlotId = null;
+
+    selectedCount.textContent = "-";
+
+    detailContent.innerHTML = `
+        <div class="empty-detail">
+            목록에서 상품을 선택해주세요.
+        </div>
+    `;
+
+    expiryList.innerHTML = `
+        <tr>
+            <td colspan="6">조회 중입니다.</td>
+        </tr>
+    `;
+
+    try {
+        const response = await fetch(
+            `${API_BASE_URL}/storage/expiry?option=${option}`
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                data.detail || "만료 예정 목록 조회에 실패했습니다."
+            );
+        }
+
+        expiryItems = data;
+
+        totalCount.textContent = expiryItems.length;
+
+        renderExpiryList();
+
+    } catch (error) {
+        expiryItems = [];
+        totalCount.textContent = "0";
+
+        expiryList.innerHTML = `
+            <tr>
+                <td colspan="6">조회에 실패했습니다.</td>
+            </tr>
+        `;
+
+        errorMessage.textContent = error.message;
+    }
+}
+
+
+// 목록 렌더링
+function renderExpiryList() {
+    if (expiryItems.length === 0) {
+        expiryList.innerHTML = `
+            <tr>
+                <td colspan="6">
+                    만료 예정 항목이 없습니다.
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    expiryList.innerHTML = expiryItems.map(item => {
+        const remainingDays = getRemainingDays(item.expiry_date);
+
+        return `
+        <tr
+            data-slot-id="${item.slot_id}"
+            class="${selectedSlotId === item.slot_id ? "selected" : ""}"
+        >
+            <td>${item.dong ?? "-"}</td>
+            <td>${item.line_code ?? "-"}</td>
+            <td>${item.column_no ?? "-"}</td>
+            <td>${item.floor ?? "-"}</td>
+            <td class="product-name">${item.info ?? "-"}</td>
+            <td>${formatDate(item.expiry_date)}</td>
+            <td>${remainingDays}일</td>
+        </tr>
+    `}).join("");
+
+    expiryList.querySelectorAll("tr[data-slot-id]")
+        .forEach(row => {
+            row.addEventListener("click", () => {
+                const slotId = Number(row.dataset.slotId);
+                selectSlot(slotId);
+            });
+        });
+}
+
+
+// 슬롯 상세정보 조회
+async function selectSlot(slotId) {
+    errorMessage.textContent = "";
+    selectedSlotId = slotId;
+
+    selectedCount.textContent = slotId;
+
+    renderExpiryList();
+
+    detailContent.innerHTML = `
+        <div class="empty-detail">
+            상품 정보를 조회 중입니다.
+        </div>
+    `;
+
+    try {
+        const response = await fetch(
+            `${API_BASE_URL}/slots/${slotId}`
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                data.detail || "슬롯 정보 조회에 실패했습니다."
+            );
+        }
+
+        let imageHtml = `
+            <div class="detail-image">
+                <span class="no-image">이미지가 없습니다.</span>
+            </div>
+        `;
+
+        if (data.image_data) {
+            imageHtml = `
+                <div class="detail-image">
+                    <img
+                        src="data:${data.image_type};base64,${data.image_data}"
+                        alt="상품 이미지"
+                    >
+                </div>
+            `;
+        }
+
+        detailContent.innerHTML = `
+            ${imageHtml}
+
+            <div class="detail-row">
+                <span class="label">슬롯 ID</span>
+                <span class="value">${data.slot_id}</span>
+            </div>
+
+            <div class="detail-row">
+                <span class="label">적재 요청 번호</span>
+                <span class="value">${data.request_id ?? "-"}</span>
+            </div>
+
+            <div class="detail-row">
+                <span class="label">상품 정보</span>
+                <span class="value">${data.slot_info ?? "-"}</span>
+            </div>
+
+            <div class="detail-row">
+                <span class="label">유통기한</span>
+                <span class="value">${formatDate(data.expiry_date)}</span>
+            </div>
+        `;
+
+    } catch (error) {
+        detailContent.innerHTML = `
+            <div class="empty-detail">
+                상품 정보를 불러오지 못했습니다.
+            </div>
+        `;
+
+        errorMessage.textContent = error.message;
+    }
+}
+
+// 유통기한까지 남은 일수
+function getRemainingDays(expiryDate) {
+    const today = new Date();
+    const expiry = new Date(expiryDate);
+
+    // 시간은 제외하고 날짜만 비교
+    today.setHours(0, 0, 0, 0);
+    expiry.setHours(0, 0, 0, 0);
+
+    const diff = expiry - today;
+
+    return Math.ceil(diff / (1000 * 60 * 60 * 24));
+}
+
+// 조회 버튼
+searchBtn.addEventListener("click", loadExpiryList);
+
+
+// 최초 진입 시 기본 7일 조회
+loadExpiryList();
+</script>
+
+</body>
+</html>

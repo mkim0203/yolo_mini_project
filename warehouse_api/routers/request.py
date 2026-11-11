@@ -94,9 +94,6 @@ async def search_requests( db: Session = Depends(get_db)):
         )
         .all()
     )
-
-    print(len(result))
-
     
     items = [
         StorageRequestItem(**row._mapping)
@@ -138,7 +135,7 @@ async def search_requests(request_id:int, db: Session = Depends(get_db)):
     )
 
 
-@router.post("/{request_id}/slot", description="적재 요청 받은 항목을 slot에 적재 진행.")
+@router.put("/{request_id}/slot", description="적재 요청 받은 항목을 slot에 적재 진행.")
 async def input_slot(request_id:int, db: Session = Depends(get_db)):
     print(request_id)
     # 적재 요청 테이블에서 확인
@@ -161,4 +158,3 @@ async def input_slot(request_id:int, db: Session = Depends(get_db)):
 
     return { "slot_id" : slot_id }
 
-    

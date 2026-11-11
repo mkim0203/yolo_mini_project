@@ -323,7 +323,7 @@ releaseBtn.addEventListener("click", async () => {
         releaseBtn.disabled = true;
 
         const response = await fetch(
-            `${API_BASE_URL}/release`,
+            `${API_BASE_URL}/releases/release`,
             {
                 method: "POST",
                 headers: {

@@ -8,7 +8,7 @@ from routers import (
     slot,
     storage,
     request,
-    # release,
+    release,
     # expiry,
     # slot,
     # dashboard
@@ -37,7 +37,7 @@ app.include_router(warehouse.router)
 app.include_router(slot.router)
 app.include_router(storage.router)
 app.include_router(request.router)
-# app.include_router(release.router)
+app.include_router(release.router)
 # app.include_router(expiry.router)
 # app.include_router(slot.router)
 # app.include_router(dashboard.router)

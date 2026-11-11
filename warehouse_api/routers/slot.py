@@ -1,5 +1,5 @@
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from database.connection import get_db
@@ -14,7 +14,7 @@ router = APIRouter(
 )
 
 @router.get("/{slot_id}", description="'창고 현황' 선택한 slot 상세정보 조회")
-def get_lines(slot_id: int, db: Session = Depends(get_db)):
+def get_slot(slot_id: int, db: Session = Depends(get_db)):
     result = (
         db.query(
             StorageInfo.slot_id,
@@ -25,23 +25,21 @@ def get_lines(slot_id: int, db: Session = Depends(get_db)):
             StorageInfo.expiry_date
         )
         .filter(StorageInfo.slot_id == slot_id)
-        .all()
+        .first()
     )
-    
-    if len(result) == 0:
-        return None
 
-    items = [
-        SlotDetail(
-            slot_id=item.slot_id,
-            slot_info=item.info,
-            image_type=item.image_type,
-            #image_data=item.image_data,
-            image_data = base64.b64encode(item.image_data).decode("utf-8") if item.image_data else None,
-            request_id = item.request_id,
-            expiry_date=item.expiry_date
+    if result is None:
+        raise HTTPException(
+            status_code=400,
+            detail="정보를 찾을수 없습니다."
         )
-        for item in result
-    ]
 
-    return items[0]
+    return SlotDetail(
+        slot_id=result.slot_id,
+        slot_info=result.info,
+        image_type=result.image_type,
+        #image_data=item.image_data,
+        image_data = base64.b64encode(result.image_data).decode("utf-8") if result.image_data else None,
+        request_id = result.request_id,
+        expiry_date=result.expiry_date
+    )

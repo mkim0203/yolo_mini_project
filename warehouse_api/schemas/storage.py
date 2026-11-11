@@ -23,6 +23,7 @@ class StorageRequestDetail(BaseModel):
 
 class ReleaseResponse(BaseModel):
     release_requested: bool
+    slot_id: int
     info: str
     image_type: str | None=None
     image_data: str | None=None
@@ -56,3 +57,23 @@ class HistoryResponse(BaseModel):
     input_date: datetime | None=None
     output_date: datetime | None=None
     create_date: datetime | None=None
+
+class ExpriyResponse(BaseModel):
+    """
+    w.dong
+    , s.line_code
+    , s.column_no
+    , s.floor
+    , i.storage_id
+    , i.slot_id
+    , i.info
+    , i.expiry_date
+    """
+    dong: str | None=None
+    line_code: str | None=None
+    column_no: int | None=None
+    floor: int | None=None
+    storage_id: int
+    slot_id: int
+    info: str | None=None
+    expiry_date: datetime | None=None

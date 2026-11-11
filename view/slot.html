@@ -88,10 +88,6 @@
     margin-top: 10px;
 }
 
-.green { color: #279768; }
-.yellow { color: #d59a25; }
-.red { color: #dc5555; }
-
 .content {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 320px;
@@ -322,15 +318,15 @@ button:disabled { background: #aeb8c4; cursor: not-allowed; }
             </div>
             <div class="summary-card">
                 <span>사용 중</span>
-                <strong class="green" id="used">0</strong>
+                <strong class="status-used-text" id="used">0</strong>
             </div>
             <div class="summary-card">
                 <span>빈 공간</span>
-                <strong class="yellow" id="empty">0</strong>
+                <strong class="status-empty-text" id="empty">0</strong>
             </div>
             <div class="summary-card">
                 <span>점검 중</span>
-                <strong class="red" id="maintenance">0</strong>
+                <strong class="status-maintenance-text" id="maintenance">0</strong>
             </div>
         </div>
 

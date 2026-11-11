@@ -38,7 +38,7 @@ def get_warehouses(db: Session = Depends(get_db)):
     )
 
 @router.get("/info", description="'창고 현황' 데이터 조회, 창고 동, line 정보")
-def get_warehouses(db: Session = Depends(get_db)):
+def get_warehouses_info(db: Session = Depends(get_db)):
     result = (
         db.query(
             Warehouse.warehouse_id,
@@ -104,7 +104,7 @@ def get_lines(warehouse_id: int, db: Session = Depends(get_db)):
 
 
 @router.get("/{warehouse_id}/lines/{line_code}", description="'창고 현황' 창고 동, line 기준으로 slot 정보 조회")
-def get_line(warehouse_id: int, line_code: str, db: Session = Depends(get_db)):
+def get_slots(warehouse_id: int, line_code: str, db: Session = Depends(get_db)):
     
     result = (
         db.query(

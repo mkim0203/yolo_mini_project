@@ -290,8 +290,8 @@ function renderHistory(data) {
             item.expiry_date ? formatDate(item.expiry_date) : "-",
             item.storage_request_id ?? "-",
             item.release_request_id ?? "-",
-            formatDate(item.input_date),
-            formatDate(item.output_date)
+            item.input_date ? formatDate(item.input_date) : "-",
+            item.output_date ? formatDate(item.output_date) : "-"
         ];
 
         values.forEach(value => {

@@ -11,8 +11,8 @@ model = tf.keras.models.load_model(
 )
 
 
-def exec_predict(request_id: int, image_type: str, image_data: str):
-    print(f"{request_id} / {image_type} / {len(image_data)}")
+def exec_predict(request_id: int, image_type: str, image_data: str, food_score_threshold:float = 0.4):
+    print(f"{request_id} / {image_type} / {len(image_data)} / {food_score_threshold}")
     # 1. Base64 문자열 디코딩
     image_data = base64.b64decode(image_data, validate=True)
 
@@ -29,8 +29,10 @@ def exec_predict(request_id: int, image_type: str, image_data: str):
     if image_type not in allowed_types:
         raise ValueError("지원하지 않는 이미지 타입입니다.")
 
-    if img.format != allowed_types[image_type]:
-        raise ValueError("전달된 이미지 타입과 실제 이미지 형식이 다릅니다.")
+    # 이미지 타입이 다른경우 로그만 출력
+    #if img.format != allowed_types[image_type]:
+    #    raise ValueError(f"전달된 이미지 타입과 실제 이미지 형식이 다릅니다. 전달 : {image_type} => 실제 : {img.format}")
+    print(f"전달된 이미지 타입과 실제 이미지 형식이 다릅니다. 전달 : {image_type} => 실제 : {img.format}")
 
     # 4. RGB 변환 및 크기 조정
     img = img.convert("RGB")
@@ -50,7 +52,7 @@ def exec_predict(request_id: int, image_type: str, image_data: str):
 
     score = prediction[0][0]
 
-    if score >= 0.5:
+    if score >= food_score_threshold:
         classification = "Non-Food"
     else:
         classification = "Food"

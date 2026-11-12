@@ -57,7 +57,7 @@
 
 .filter-btn:hover {
     background: #dce7f5;
-    color: #245d9c;
+    color: white;
 }
 
 .filter-btn.active {
@@ -388,7 +388,7 @@ button:disabled { background: #aeb8c4; cursor: not-allowed; }
                 </div>
 
                 <div class="detail-row">
-                    <span>분류 score</span>
+                    <span>구분 비율</span>
                     <strong id="food_score">-</strong>
                 </div>
 
@@ -935,7 +935,7 @@ function renderDetail() {
     selectedSlotDetail = null;
 
     //document.getElementById("moveButton").disabled = true;
-    document.getElementById("maintenanceButton").disabled = false;
+    document.getElementById("maintenanceButton").disabled = true;
 
     //document.getElementById("cancelMoveButton").hidden = !moveMode;
 }
@@ -995,8 +995,10 @@ function renderSlotDetail(data) {
         document.getElementById("food_score").textContent = "-";
         document.getElementById("processing_status").textContent = "-";
 
-        if( selectedSlot != null && selectedSlot.status === 'empty')
+        if( selectedSlot != null && (selectedSlot.status === 'empty' || selectedSlot.status === 'maintenance'))
             document.getElementById("maintenanceButton").disabled = false;
+        else 
+            document.getElementById("maintenanceButton").disabled = true;
 
 
         image.src = "";
@@ -1017,7 +1019,7 @@ function renderSlotDetail(data) {
         formatDate(data.expiry_date) ?? "-";
 
         
-    document.getElementById("food_score").textContent = data.food_score ?? "-";
+    document.getElementById("food_score").textContent = getFoodProbability(data.food_score);
     document.getElementById("processing_status").textContent = data.processing_status ?? "-";
 
 

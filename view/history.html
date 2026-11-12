@@ -186,7 +186,7 @@
                         <th>유통기한</th>
                         <th>적재 요청번호</th>
                         <th>반출 요청번호</th>
-                        <th>분류 score</th>
+                        <th>구분 비율</th>
                         <th>적재 구분</th>
                         <th>적재일시</th>
                         <th>반출일시</th>
@@ -292,7 +292,7 @@ function renderHistory(data) {
             item.expiry_date ? formatDate(item.expiry_date) : "-",
             item.storage_request_id ?? "-",
             item.release_request_id ?? "-",
-            item.food_score ?? "-",
+            getFoodProbability(item.food_score),
             item.processing_status ?? "-",
             item.input_date ? formatDate(item.input_date) : "-",
             item.output_date ? formatDate(item.output_date) : "-"

@@ -85,7 +85,6 @@ async def test(
         "filename": image.filename
     }
 
-
 @router.get("/history", description="적재 및 반출 이력 조회")
 async def search_history(
     find_text: str = "",
@@ -169,8 +168,6 @@ async def search_history(
     ]
 
     return items
-    
-
 
 @router.get("/expiry", description="유통 기한 만료 예정인 항목들 조회")
 async def search_expiry(
@@ -232,8 +229,6 @@ async def search_expiry(
     ]
 
     return items
-
-
 
 @router.get("/{id}", description="창고 적재 확인. option에 따라 구분하여 조회함.")
 async def search_storage(id:int, option:str = "request", db: Session = Depends(get_db)):

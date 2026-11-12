@@ -77,6 +77,19 @@ class WarehouseSlot(Base):
         server_default=text("CURRENT_TIMESTAMP")
     )
 
+class WarehouseConfig(Base):
+    __tablename__ = "warehouse_config"
+    
+    config_id = Column(Integer, primary_key=True, autoincrement=True)
+    config_key = Column(String(50), nullable=False)
+    config_value = Column(String(50), nullable=True)
+    info = Column(String(100), nullable=True)
+    create_date = Column(
+        DateTime(timezone=True),
+        nullable=True,
+        server_default=text("CURRENT_TIMESTAMP")
+    )
+
 class StorageInfo(Base):
     __tablename__ = "storage_info"
 

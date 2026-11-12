@@ -9,9 +9,7 @@ from routers import (
     storage,
     request,
     release,
-    # expiry,
-    # slot,
-    # dashboard
+    config
 )
 
 app = FastAPI(
@@ -38,7 +36,7 @@ app.include_router(slot.router)
 app.include_router(storage.router)
 app.include_router(request.router)
 app.include_router(release.router)
-# app.include_router(expiry.router)
+app.include_router(config.router)
 # app.include_router(slot.router)
 # app.include_router(dashboard.router)
 

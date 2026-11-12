@@ -31,3 +31,6 @@ python-multipart
 
 # 이미지 분석
 tensorflow
+
+# 스케줄러
+apscheduler<4

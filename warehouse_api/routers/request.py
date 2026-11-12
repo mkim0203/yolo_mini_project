@@ -3,8 +3,8 @@ from sqlalchemy.orm import Session
 
 from datetime import datetime
 from database.connection import get_db
-from database.models import StorageRequest
-from schemas.storage import StorageRequestItem, StorageRequestResponse, StorageRequestDetail
+from database.models import StorageRequest, WarehouseConfig
+from schemas.storage import StorageRequestItem, StorageRequestResponse, StorageRequestDetail, UpdateRequestModel, EnumClassificationStatus
 
 from sqlalchemy import text
 
@@ -140,8 +140,68 @@ async def search_requests(request_id:int, db: Session = Depends(get_db)):
         classification_status=result.classification_status
     )
 
+@router.put("/{request_id}", description="적재 요청 정보 update")
+async def update_requests(request_id:int, data:UpdateRequestModel, db: Session = Depends(get_db)):
+    try:
+        target = db.query(StorageRequest).filter(StorageRequest.request_id == request_id).first()
+        if target is None:
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"해당 id로 적재된 정보가 없습니다."
+                )
+        print(f"{request_id} / {data.classification_status} / {data.food_score}")
 
-@router.put("/{request_id}/slot", description="적재 요청 받은 항목을 slot에 적재 진행.")
+        target.classification_status = data.classification_status
+        if data.food_score is not None:
+            target.food_score = data.food_score
+
+        # 변경사항을 먼저 DB에 반영
+        db.flush()
+
+        # ORM 세션에서 객체 분리
+        db.expunge(target)    
+
+        if data.classification_status == EnumClassificationStatus.completed:
+            # 처리완료이면서 score 점수가 있으면 food_score_threshold 값보다 작으면 storage_info 테이블에 저장
+            config_food_score_threshold = (
+                db.query(WarehouseConfig)
+                .filter(WarehouseConfig.config_key == "food_score_threshold")
+                .first()
+            )
+
+            if config_food_score_threshold:
+                food_score_threshold = float(config_food_score_threshold.config_value)
+                if data.food_score <= food_score_threshold:
+                    print(f"자동 적재 대상입니다. {data.food_score}")
+                    db.execute(
+                            text("SELECT input_slot(:request_id, 'auto_stored')"),
+                            {"request_id": request_id}
+                        )
+        
+        db.commit()
+
+        return { "request_id" : request_id }
+    except Exception as e:
+        db.rollback()
+        print(f"적재 처리 오류: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="적재 처리 중 오류가 발생했습니다."
+        )
+
+@router.delete("/{request_id}", description="적재 요청 제거")
+async def delete_requests(request_id:int, db: Session = Depends(get_db)):
+    target = db.query(StorageRequest).filter(StorageRequest.request_id == request_id).first()
+    if target is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"해당 id로 적재된 정보가 없습니다."
+        )
+
+    db.delete(target)
+    db.commit()
+
+@router.put("/{request_id}/slot", description="적재 요청 받은 항목을 slot에 수동 적재 진행.")
 async def input_slot(request_id:int, db: Session = Depends(get_db)):
     print(request_id)
     # 적재 요청 테이블에서 확인
@@ -154,7 +214,7 @@ async def input_slot(request_id:int, db: Session = Depends(get_db)):
         )
     print(target)
     result = db.execute(
-        text("SELECT input_slot(:request_id)"),
+        text("SELECT input_slot(:request_id, 'manual_stored')"),
         {"request_id": request_id}
     )
 

@@ -1,6 +1,7 @@
 from datetime import datetime
 from pydantic import BaseModel
 from typing import List
+from enum import Enum
 
 class StorageRequestItem(BaseModel):
     request_id: int
@@ -69,3 +70,15 @@ class ExpriyResponse(BaseModel):
     slot_id: int
     info: str | None=None
     expiry_date: datetime | None=None
+
+
+class EnumClassificationStatus(str, Enum):
+    pending = "pending"
+    processing = "processing"
+    completed ="completed"
+    failed = "failed"
+
+
+class UpdateRequestModel(BaseModel):
+    food_score: float | None=None
+    classification_status: EnumClassificationStatus    

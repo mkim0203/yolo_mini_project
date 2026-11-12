@@ -37,4 +37,23 @@ function formatDate(date) {
     });
 }
 
+function getFoodProbability(score) {
+    try {
+        if (score == null) return "-";
+
+        // 숫자로 변환 후 유효한 숫자인지(NaN 여부) 확인
+        const numScore = Number(score);
+        if (Number.isNaN(numScore)) return "-";
+
+        // 확률 계산 및 반환
+        const result = ((1 - numScore) * 100).toFixed(2) + "%";
+        return result;
+
+    } catch (error) {
+        // 예외 발생 시 콘솔에 로그 출력 후 기본값 반환
+        console.error("음식 확률 계산 중 오류 발생:", error);
+        return "-";
+    }
+}
+
 document.addEventListener("DOMContentLoaded", loadSidebar);

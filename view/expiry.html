@@ -410,6 +410,10 @@ function renderExpiryList() {
         return `
         <tr
             data-slot-id="${item.slot_id}"
+            data-dong="${item.dong ?? ""}"
+            data-line-code="${item.line_code ?? ""}"
+            data-column-no="${item.column_no ?? ""}"
+            data-floor="${item.floor ?? ""}"
             class="${selectedSlotId === item.slot_id ? "selected" : ""}"
         >
             <td>${item.dong ?? "-"}</td>
@@ -427,6 +431,7 @@ function renderExpiryList() {
             row.addEventListener("click", () => {
                 const slotId = Number(row.dataset.slotId);
                 selectSlot(slotId);
+                updateSelectedCount(row.dataset.dong, row.dataset.lineCode, row.dataset.columnNo, row.dataset.floor);
             });
         });
 }
@@ -437,7 +442,7 @@ async function selectSlot(slotId) {
     errorMessage.textContent = "";
     selectedSlotId = slotId;
 
-    selectedCount.textContent = slotId;
+    
 
     renderExpiryList();
 
@@ -510,6 +515,10 @@ async function selectSlot(slotId) {
 
         errorMessage.textContent = error.message;
     }
+}
+
+async function updateSelectedCount(dong, line_code, column_no, floor) {
+    selectedCount.textContent = `${dong} ${line_code}-${column_no} ${floor}층`;
 }
 
 // 유통기한까지 남은 일수

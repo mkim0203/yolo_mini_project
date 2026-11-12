@@ -177,7 +177,7 @@
     }
 
     .complete-btn {
-        width: 100%;
+        width: 45%;
         margin-top: 25px;
         padding: 13px;
         border: none;
@@ -194,6 +194,28 @@
     }
 
     .complete-btn:disabled {
+        background: #9ca3af;
+        cursor: not-allowed;
+    }
+
+    .remove-btn {
+        width: 45%;
+        margin-top: 25px;
+        padding: 13px;
+        border: none;
+        border-radius: 7px;
+        background: #eb2525;
+        color: white;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .remove-btn:hover {
+        background: #d81d1d;
+    }
+
+    .remove-btn:disabled {
         background: #9ca3af;
         cursor: not-allowed;
     }
@@ -252,7 +274,7 @@
                                 <th>상품 정보</th>
                                 <th>유통기한</th>
                                 <th>요청일</th>
-                                <th>분류 score</th>
+                                <th>구분 비율</th>
                                 <th>분류 상태</th>
                             </tr>
                         </thead>
@@ -307,7 +329,7 @@
                 <td class="product-name">${item.info}</td>
                 <td>${formatDate(item.expiry_date)}</td>
                 <td>${formatDate(item.create_date)}</td>
-                <td>${item.food_score ?? '-'}</td>
+                <td>${getFoodProbability(item.food_score)}</td>
                 <td>${item.classification_status ?? '-'}</td>
             </tr>
         `).join("");
@@ -396,8 +418,8 @@
             </div>
 
             <div class="detail-row">
-                <span class="label">분류 score</span>
-                <span class="value">${item.food_score || "-"}</span>
+                <span class="label">구분 비율</span>
+                <span class="value">${getFoodProbability(item.food_score)}</span>
             </div>
 
             <div class="detail-row">
@@ -408,7 +430,12 @@
             <button class="complete-btn"
                     id="completeBtn"
                     onclick="completeRequest(${item.request_id})">
-                적재 완료
+                수동 적재 완료
+            </button>
+            <button class="remove-btn"
+                    id="removeBtn"
+                    onclick="removeRequest(${item.request_id})">
+                요청 삭제
             </button>
         `;
     }
@@ -448,10 +475,47 @@
             alert(`적재 처리 실패: ${error.message}`);
 
             btn.disabled = false;
-            btn.textContent = "적재 완료";
+            btn.textContent = "적재 처리 실패";
         }
     }
 
+    async function removeRequest(requestId) {
+        if (!confirm(`요청 번호 #${requestId}을(를) 요청 삭제를 하시겠습니까?`)) {
+            return;
+        }
+
+        const btn = document.getElementById("removeBtn");
+        btn.disabled = true;
+        btn.textContent = "삭제 처리 중...";
+
+        try {
+            const response = await fetch(
+                `${API_BASE_URL}/requests/${requestId}`,
+                {
+                    method: "DELETE"
+                }
+            );
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => null);
+
+                throw new Error(
+                    errorData?.detail || `API 오류: ${response.status}`
+                );
+            }
+
+            alert("삭제가 완료되었습니다.");
+
+            // 화면 새로고침
+            location.reload();
+
+        } catch (error) {
+            alert(`삭제 처리 실패: ${error.message}`);
+
+            btn.disabled = false;
+            btn.textContent = "삭제 처리 실패";
+        }
+    }
     // 초기 실행
     renderRequestList();
 </script>

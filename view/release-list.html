@@ -171,6 +171,28 @@
         cursor: not-allowed;
     }
 
+    .slot-image-wrap {
+        width: 100%;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    .slot-image {
+        max-width: 100%;
+        max-height: 250px;
+        object-fit: contain;
+        border: 1px solid #edf0f4;
+        border-radius: 7px;
+    }
+
+    .slot-image-empty {
+        padding: 30px 10px;
+        color: #9aa4b2;
+        background: #f8fafc;
+        border-radius: 7px;
+        font-size: 13px;
+    }
+
     @media (max-width: 1100px) {
         .content {
             grid-template-columns: 1fr;
@@ -335,11 +357,18 @@
     }
 
     // 반출 상세 정보 출력
-    function renderDetail(item) {
+    async function renderDetail(item) {
 
         const cd = formatDate(item.create_date);
 
         document.getElementById("detailContent").innerHTML = `
+
+            <!-- 슬롯 이미지 -->
+            <div class="slot-image-wrap" id="slotImageArea">
+                <div class="slot-image-empty">
+                    슬롯 이미지 조회 중...
+                </div>
+            </div>
 
             <div class="detail-row">
                 <span class="label">반출 요청 번호</span>
@@ -364,11 +393,64 @@
             <button class="complete-btn"
                     id="completeBtn"
                     onclick="completeRelease(${item.release_id})">
-
                 반출 완료
-
             </button>
         `;
+
+        const imageArea = document.getElementById("slotImageArea");
+
+        try {
+
+            // 슬롯 상세 정보 조회
+            const response = await fetch(
+                `${API_BASE_URL}/slots/${item.slot_id}`
+            );
+
+            if (!response.ok) {
+                throw new Error(`API 오류: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            // 조회 도중 다른 항목을 선택했다면 화면 갱신 중단
+            if (selectedReleaseId !== item.release_id) {
+                return;
+            }
+
+            if (data.image_data && data.image_type) {
+
+                imageArea.innerHTML = `
+                    <img
+                        class="slot-image"
+                        src="data:${data.image_type};base64,${data.image_data}"
+                        alt="슬롯 이미지"
+                    >
+                `;
+
+            } else {
+
+                imageArea.innerHTML = `
+                    <div class="slot-image-empty">
+                        등록된 슬롯 이미지가 없습니다.
+                    </div>
+                `;
+            }
+
+        } catch (error) {
+
+            // 다른 항목을 선택했다면 이전 조회 결과를 표시하지 않음
+            if (selectedReleaseId !== item.release_id) {
+                return;
+            }
+
+            imageArea.innerHTML = `
+                <div class="slot-image-empty">
+                    슬롯 이미지를 불러오지 못했습니다.
+                </div>
+            `;
+
+            console.error("슬롯 이미지 조회 실패:", error);
+        }
     }
 
     // 반출 처리

@@ -1,3 +1,5 @@
+* { box-sizing: border-box; }
+
 body {
     margin: 0;
     font-family: Arial, sans-serif;
@@ -14,11 +16,17 @@ body {
 
 .sidebar {
     width: 220px;
-    height: 100%;
+    /* height: 100%; */
     flex-shrink: 0;
     background: #243449;
     color: white;
     padding: 25px 15px;
+    
+    position: sticky;
+    height: 100vh;
+    top: 0;
+    align-self: start;
+    overflow-y: auto;
 }
 
 .sidebar h2 { font-size: 20px; margin: 0 0 35px; }
@@ -58,3 +66,32 @@ body {
 .status-maintenance-text {
     color: #dc5555;
 }
+
+.main {
+    flex: 1;
+    padding: 25px;
+    min-width: 0;
+}
+
+.header {
+    display: flex;
+    align-items: flex-end;
+    margin-bottom: 25px;
+}
+
+.header h1 { font-size: 25px; margin: 0; }
+
+
+.header span {
+    color: #8993a4;
+    font-size: 13px;
+    padding-left: 10px;
+}
+
+
+.detail-panel {
+    position: sticky;
+    top: 20px;
+    align-self: start;
+}
+

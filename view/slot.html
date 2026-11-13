@@ -9,23 +9,6 @@
 <link rel="stylesheet" href="/view/css/common.css">
 
 <style>
-* { box-sizing: border-box; }
-
-.main {
-    flex: 1;
-    padding: 25px;
-    min-width: 0;
-}
-
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 25px;
-}
-
-.header h1 { font-size: 25px; margin: 0; }
-
 .filter-section {
     background: white;
     padding: 16px 20px;
@@ -1043,16 +1026,61 @@ function renderSlotDetail(data) {
 // 점검 상태 변경
 // --------------------------------------------------
 
-function toggleMaintenance() {
+async function toggleMaintenance() {
 
-    if (!selectedSlot || selectedSlot.status === "used") return;
+    if (!selectedSlot || selectedSlot.status === "used") {
+        return;
+    }
 
-    selectedSlot.status =
+    const slot_id = selectedSlot.slot_id;
+
+    // 현재 상태에 따라 변경할 상태 결정
+    const newStatus =
         selectedSlot.status === "maintenance"
             ? "empty"
             : "maintenance";
 
-    renderAll();
+    const message =
+        newStatus === "maintenance"
+            ? "해당 슬롯을 점검 상태로 변경하시겠습니까?"
+            : "해당 슬롯을 빈 슬롯으로 변경하시겠습니까?";
+
+    if (!confirm(message)) {
+        return;
+    }
+
+    try {
+        const response = await fetch(
+            `${API_BASE_URL}/slots/${slot_id}/status`,
+            {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    status: newStatus
+                })
+            }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                data.detail || "슬롯 상태 변경에 실패했습니다."
+            );
+        }
+
+        // API 성공 후 상태 변경
+        selectedSlot.status = data.status;
+
+        renderAll();
+
+        //alert("슬롯 상태가 변경되었습니다.");
+
+    } catch (error) {
+        alert(error.message);
+    }
 }
 
 // --------------------------------------------------

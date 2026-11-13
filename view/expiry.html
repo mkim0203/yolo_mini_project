@@ -8,26 +8,6 @@
     <link rel="stylesheet" href="/view/css/common.css">
 
     <style>
-        * { box-sizing: border-box; }
-
-        .main {
-            padding: 30px;
-        }
-
-        .header {
-            margin-bottom: 25px;
-        }
-
-        .header h2 {
-            margin: 0 0 7px;
-            font-size: 25px;
-        }
-
-        .header span {
-            color: #8993a4;
-            font-size: 13px;
-        }
-
         .summary {
             display: flex;
             gap: 15px;
@@ -201,6 +181,47 @@
             font-size: 13px;
         }
 
+        .release-status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .release-status.requested {
+            background: #fff3f3;
+            color: #dc3545;
+            border: 1px solid #f5c6cb;
+        }
+
+        .release-action {
+            margin-top: 20px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .release-btn {
+            padding: 11px 25px;
+            border: none;
+            border-radius: 5px;
+            background: #dc3545;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .release-btn:hover {
+            background: #da1125;
+        }
+
+        .release-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
         @media (max-width: 1100px) {
             .content {
                 grid-template-columns: 1fr;
@@ -237,7 +258,7 @@
     <main class="main">
 
         <div class="header">
-            <h2>유통기한 만료 예정</h2>
+            <h1>유통기한 만료 예정</h1>
             <span>유통기한이 임박한 상품을 조회합니다.</span>
         </div>
 
@@ -248,7 +269,7 @@
             </div>
 
             <div class="summary-card">
-                <div class="label">선택된 상품</div>
+                <div class="label">위치</div>
                 <div class="value" id="selectedCount">-</div>
             </div>
         </section>
@@ -303,7 +324,7 @@
             </div>
 
             <!-- 상품 상세 정보 -->
-            <div class="panel">
+            <div class="panel detail-panel">
                 <h3>상품 상세 정보</h3>
 
                 <div id="detailContent">
@@ -438,11 +459,10 @@ function renderExpiryList() {
 
 
 // 슬롯 상세정보 조회
+// 슬롯 상세정보 조회
 async function selectSlot(slotId) {
     errorMessage.textContent = "";
     selectedSlotId = slotId;
-
-    
 
     renderExpiryList();
 
@@ -453,8 +473,9 @@ async function selectSlot(slotId) {
     `;
 
     try {
+        // 창고 적재 상태 조회
         const response = await fetch(
-            `${API_BASE_URL}/slots/${slotId}`
+            `${API_BASE_URL}/storage/${slotId}?option=slot`
         );
 
         const data = await response.json();
@@ -465,6 +486,7 @@ async function selectSlot(slotId) {
             );
         }
 
+        // 이미지 기본 화면
         let imageHtml = `
             <div class="detail-image">
                 <span class="no-image">이미지가 없습니다.</span>
@@ -482,6 +504,29 @@ async function selectSlot(slotId) {
             `;
         }
 
+        // 반출 요청 여부에 따른 화면
+        let releaseHtml = "";
+
+        if (data.release_requested) {
+            releaseHtml = `
+                <div class="release-status requested">
+                    이미 반출요청된 항목입니다.
+                </div>
+            `;
+        } else {
+            releaseHtml = `
+                <div class="release-action">
+                    <button
+                        type="button"
+                        id="releaseBtn"
+                        class="release-btn"
+                    >
+                        반출 요청
+                    </button>
+                </div>
+            `;
+        }
+
         detailContent.innerHTML = `
             ${imageHtml}
 
@@ -491,20 +536,26 @@ async function selectSlot(slotId) {
             </div>
 
             <div class="detail-row">
-                <span class="label">적재 요청 번호</span>
-                <span class="value">${data.request_id ?? "-"}</span>
-            </div>
-
-            <div class="detail-row">
                 <span class="label">상품 정보</span>
-                <span class="value">${data.slot_info ?? "-"}</span>
+                <span class="value">${data.info ?? "-"}</span>
             </div>
 
             <div class="detail-row">
                 <span class="label">유통기한</span>
                 <span class="value">${formatDate(data.expiry_date)}</span>
             </div>
+
+            ${releaseHtml}
         `;
+
+        // 반출 요청 버튼 이벤트 등록
+        const releaseBtn = document.getElementById("releaseBtn");
+
+        if (releaseBtn) {
+            releaseBtn.addEventListener("click", () => {
+                requestRelease(slotId);
+            });
+        }
 
     } catch (error) {
         detailContent.innerHTML = `
@@ -533,6 +584,63 @@ function getRemainingDays(expiryDate) {
     const diff = expiry - today;
 
     return Math.ceil(diff / (1000 * 60 * 60 * 24));
+}
+
+// 반출 요청
+async function requestRelease(slotId) {
+
+    const confirmed = confirm(
+        "해당 상품을 반출 요청하시겠습니까?"
+    );
+
+    if (!confirmed) {
+        return;
+    }
+
+    const releaseBtn = document.getElementById("releaseBtn");
+
+    if (releaseBtn) {
+        releaseBtn.disabled = true;
+        releaseBtn.textContent = "요청 중...";
+    }
+
+    errorMessage.textContent = "";
+
+    try {
+        const response = await fetch(
+            `${API_BASE_URL}/releases/release`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    slot_id: slotId
+                })
+            }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                data.detail || "반출 요청에 실패했습니다."
+            );
+        }
+
+        alert("반출 요청이 완료되었습니다.");
+
+        // 반출 요청 상태를 다시 조회하여 상세 화면 갱신
+        await selectSlot(slotId);
+
+    } catch (error) {
+        errorMessage.textContent = error.message;
+
+        if (releaseBtn) {
+            releaseBtn.disabled = false;
+            releaseBtn.textContent = "반출 요청";
+        }
+    }
 }
 
 // 조회 버튼

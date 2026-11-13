@@ -11,3 +11,6 @@ __pycache__/
 
 # 학습 model
 *.keras
+
+# test 에미지 제외
+test/images/*

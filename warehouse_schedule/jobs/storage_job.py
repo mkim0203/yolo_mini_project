@@ -21,11 +21,11 @@ async def storage_classification_job():
         print("처리할 적재 요청이 없습니다.")
         return
 
-    # 2. 미분류 요청만 필터링
+    # 2. 미분류 요청만 필터링. 한번 처리시 10개까지만
     pending_items = [
         item for item in requests.get("items", [])
         if item.get("classification_status") is None or item.get("classification_status") == "pending" 
-    ]
+    ][:10]
 
     if not pending_items:
         print("분류 대기 중인 요청이 없습니다.")

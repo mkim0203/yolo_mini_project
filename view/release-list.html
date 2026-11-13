@@ -8,27 +8,6 @@
 <link rel="stylesheet" href="/view/css/common.css">
 
 <style>
-    * { box-sizing: border-box; }
-
-    .logo {
-        font-size: 21px;
-        font-weight: bold;
-        padding: 5px 12px 35px;
-    }
-
-    .main {
-        padding: 30px;
-    }
-
-    .header {
-        margin-bottom: 25px;
-    }
-
-    .header h2 {
-        margin: 0 0 7px;
-        font-size: 25px;
-    }
-
     .summary {
         display: flex;
         gap: 15px;
@@ -223,7 +202,7 @@
     <main class="main">
 
         <div class="header">
-            <h2>반출 요청 현황</h2>
+            <h1>반출 요청 현황</h2>
         </div>
 
         <section class="summary">
@@ -261,7 +240,7 @@
             </div>
 
             <!-- 반출 상세 정보 -->
-            <div class="panel">
+            <div class="panel detail-panel">
                 <h3>반출 상세 정보</h3>
 
                 <div id="detailContent">
@@ -381,6 +360,11 @@
             </div>
 
             <div class="detail-row">
+                <span class="label">위치</span>
+                <span class="value" id="slotLocation">-</span>
+            </div>
+
+            <div class="detail-row">
                 <span class="label">상품 정보</span>
                 <span class="value">${item.info}</span>
             </div>
@@ -398,6 +382,7 @@
         `;
 
         const imageArea = document.getElementById("slotImageArea");
+        const locationArea = document.getElementById("slotLocation");
 
         try {
 
@@ -434,6 +419,10 @@
                         등록된 슬롯 이미지가 없습니다.
                     </div>
                 `;
+            }
+
+            if(data.dong) {
+                locationArea.innerText = `${data.dong} ${data.line_code}-${data.column_no} ${data.floor}층`;
             }
 
         } catch (error) {

@@ -1,4 +1,6 @@
-CREATE OR REPLACE FUNCTION public.input_slot(p_request_id bigint, p_processing_status varchar(20))
+CREATE OR REPLACE FUNCTION public.input_slot(
+	p_request_id bigint,
+	p_processing_status character varying)
     RETURNS bigint
     LANGUAGE 'plpgsql'
     COST 100
@@ -14,12 +16,13 @@ DECLARE
 	v_storage_id BIGINT;
 	v_food_score FLOAT;
 	v_classification_status varchar(20);
+	v_classification_result jsonb;
 BEGIN
 	-- 적제 요청 ID기준으로 slot에 사용 전환 및 적재 정보 등록
 
 	--1. request_id로 적재 요청 조회
-	select info, expiry_date, image_type, image_data, food_score, classification_status 
-	into v_info, v_expiry_date, v_image_type, v_image_data, v_food_score, v_classification_status
+	select info, expiry_date, image_type, image_data, food_score, classification_status, classification_result 
+	into v_info, v_expiry_date, v_image_type, v_image_data, v_food_score, v_classification_status, v_classification_result
 	from storage_request
 	where request_id = p_request_id;
 
@@ -46,15 +49,15 @@ BEGIN
 	WHERE slot_id = v_slot_id;
 	
 	--4. storage_info 테이블에 적재 정보 INSERT
-	INSERT INTO storage_info(slot_id, request_id, info, image_type, image_data, food_score, processing_status, expiry_date)
-	VALUES(v_slot_id, p_request_id, v_info, v_image_type, v_image_data, v_food_score, p_processing_status, v_expiry_date)
+	INSERT INTO storage_info(slot_id, request_id, info, image_type, image_data, food_score, processing_status, classification_result, expiry_date)
+	VALUES(v_slot_id, p_request_id, v_info, v_image_type, v_image_data, v_food_score, p_processing_status, v_classification_result, v_expiry_date)
 	RETURNING storage_id INTO v_storage_id;
 	-- insert 이후 storage_id 가져와야함.
 	
 	--5. history 테이블에 작업 이력 INSERT
     INSERT INTO public.storage_history(
-	warehouse_id, slot_id, storage_id, info, expiry_date, storage_request_id, food_score, processing_status, input_date)
-	VALUES (v_warehouse_id, v_slot_id, v_storage_id, v_info, v_expiry_date, p_request_id, v_food_score, p_processing_status, NOW());
+	warehouse_id, slot_id, storage_id, info, expiry_date, storage_request_id, food_score, processing_status, classification_result, input_date)
+	VALUES (v_warehouse_id, v_slot_id, v_storage_id, v_info, v_expiry_date, p_request_id, v_food_score, p_processing_status, v_classification_result, NOW());
 
 	--6. storage_request 테이블에서 제거
 	DELETE FROM storage_request

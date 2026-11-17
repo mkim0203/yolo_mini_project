@@ -10,3 +10,5 @@ class PredictFoodResponse(BaseModel):
     request_id : int
     is_food: bool
     score: float
+    classification_result: dict
+    

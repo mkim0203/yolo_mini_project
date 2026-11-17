@@ -6,13 +6,33 @@ import io
 from PIL import Image
 from tensorflow.keras.applications.vgg16 import preprocess_input
 
-model = tf.keras.models.load_model(
+CLASS_NAMES = [
+    "produce",
+    "sea_food",
+    "meat",
+    "grain",
+    #"processed_food",
+    "etc"
+]
+
+food_model = tf.keras.models.load_model(
     "./models/vgg16_food_classifier.keras"
 )
 
 
+item_model = tf.keras.models.load_model(
+    "./models/vgg16_5item_classifier.keras",
+    custom_objects={
+        "preprocess_input": preprocess_input
+    }
+)
+
 def exec_predict(request_id: int, image_type: str, image_data: str, food_score_threshold:float = 0.4):
     print(f"{request_id} / {image_type} / {len(image_data)} / {food_score_threshold}")
+    if food_score_threshold is None:
+        food_score_threshold= 0.4
+        print("set food_score_threshold 0.4")
+
     # 1. Base64 문자열 디코딩
     image_data = base64.b64decode(image_data, validate=True)
 
@@ -48,20 +68,38 @@ def exec_predict(request_id: int, image_type: str, image_data: str, food_score_t
     img_array = preprocess_input(img_array)
 
     # 8. 모델 예측
-    prediction = model.predict(img_array, verbose=0)
+    food_prediction = food_model.predict(img_array, verbose=0)
 
-    score = prediction[0][0]
+    score = food_prediction[0][0]
+
+    print(f"{request_id}, 예측값: {score:.5f}")
+
+    dic_item_score = {}  # 또는 dict() 사용
 
     if score >= food_score_threshold:
         classification = "Non-Food"
     else:
         classification = "Food"
 
-    print(f"{request_id} => {classification}, 예측값: {score:.5f}")
+        item_prediction = item_model.predict(img_array)
+        item_score = item_prediction[0][0]
+    
+        print(f"{request_id} => 예측값:{item_score:.5f}")
+        class_idx = np.argmax(item_prediction[0])
+
+        for index, temp in enumerate(item_prediction[0]):
+            print(f"\t{CLASS_NAMES[index]} {float(temp) * 100:.2f}%")
+            dic_item_score[CLASS_NAMES[index]] = float(temp)
+    
+        print("\t예측 클래스:", CLASS_NAMES[class_idx])
+        print("\t예측 확률:", item_prediction[0][class_idx])
+
+    
     print("*" * 20)
 
     return {
         "request_id": request_id,
         "is_food": True if classification == "Food" else False,
-        "score": float(score)
+        "score": float(score),
+        "classification_result": dic_item_score
     }

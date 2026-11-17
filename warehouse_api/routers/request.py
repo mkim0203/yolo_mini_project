@@ -142,6 +142,7 @@ async def search_requests(request_id:int, db: Session = Depends(get_db)):
 
 @router.put("/{request_id}", description="적재 요청 정보 update")
 async def update_requests(request_id:int, data:UpdateRequestModel, db: Session = Depends(get_db)):
+    print(f"run update_requests")
     try:
         target = db.query(StorageRequest).filter(StorageRequest.request_id == request_id).first()
         if target is None:
@@ -149,11 +150,14 @@ async def update_requests(request_id:int, data:UpdateRequestModel, db: Session =
                     status_code=404,
                     detail=f"해당 id로 적재된 정보가 없습니다."
                 )
-        print(f"{request_id} / {data.classification_status} / {data.food_score}")
+        print(f"{request_id} / {data.classification_status} / {data.food_score} / {data.classification_result}")
 
         target.classification_status = data.classification_status
         if data.food_score is not None:
             target.food_score = data.food_score
+
+        if data.classification_result is not None:
+            target.classification_result = data.classification_result
 
         # 변경사항을 먼저 DB에 반영
         db.flush()

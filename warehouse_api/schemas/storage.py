@@ -47,6 +47,7 @@ class HistoryResponse(BaseModel):
     release_request_id: int | None=None
     input_date: datetime | None=None
     food_score: float | None=None
+    classification_result: dict[str,float] | None=None
     processing_status: str | None=None
     output_date: datetime | None=None
     create_date: datetime | None=None
@@ -81,4 +82,5 @@ class EnumClassificationStatus(str, Enum):
 
 class UpdateRequestModel(BaseModel):
     food_score: float | None=None
-    classification_status: EnumClassificationStatus    
+    classification_status: EnumClassificationStatus
+    classification_result: dict[str, float] | None=None

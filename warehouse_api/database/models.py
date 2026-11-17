@@ -10,6 +10,8 @@ from sqlalchemy import (
     UniqueConstraint,
     text
 )
+from sqlalchemy.dialects.postgresql import JSONB
+
 from database.connection import Base
 
 
@@ -123,6 +125,7 @@ class StorageInfo(Base):
     expiry_date = Column(DateTime(timezone=True), nullable=False)
 
     food_score = Column(Float, nullable=True)
+    classification_result = Column(JSONB, nullable=True)
     processing_status = Column(String(20), nullable=True)
 
     create_date = Column(
@@ -156,6 +159,7 @@ class StorageHistory(Base):
     release_request_id = Column(Integer, nullable=True)
 
     food_score = Column(Float, nullable=True)
+    classification_result = Column(JSONB, nullable=True)
     processing_status = Column(String(20), nullable=True)
 
     input_date = Column(
@@ -191,6 +195,8 @@ class StorageRequest(Base):
 
     food_score = Column(Float, nullable=True)
     classification_status = Column(String(20), nullable=True)
+
+    classification_result = Column(JSONB, nullable=True)
 
     create_date = Column(
         DateTime(timezone=True),

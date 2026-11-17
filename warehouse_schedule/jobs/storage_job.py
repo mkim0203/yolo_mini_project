@@ -37,17 +37,19 @@ async def storage_classification_job():
     for item in pending_items:
         request_id = item["request_id"]
 
+        print("3. update processing")
         # 요청 항목 작업 진행 update processing
         await update_classification_status(request_id, "processing")
 
         try:
+            print("3. 상세 정보 조회")
             # 상세 정보 조회
             detail = await warehouse.get(
                 f"/requests/{request_id}"
             )
 
             
-
+            print("3. AI 분류 요청")
             # AI 분류 요청
             result = await ai.post(
                 "/predicts/food",
@@ -63,7 +65,7 @@ async def storage_classification_job():
 
             # 요청 항목 작업 진행 update completed
             # 분류 결과 저장
-            await update_classification_status(request_id, "completed", result["score"])
+            await update_classification_status(request_id, "completed", result["score"], result["classification_result"])
 
 
         except Exception as e:
@@ -72,13 +74,19 @@ async def storage_classification_job():
             await update_classification_status(request_id, "failed")
 
 
-async def update_classification_status(request_id:int, status:str, score:float=None):
+async def update_classification_status(request_id:int, status:str, score:float=None, classification_result:dict[str,float]=None):
     warehouse = WarehouseClient()
 
     update_url = f"/requests/{request_id}"
+
+    send_data={
+        "classification_status": status,
+        "food_score": score,
+        "classification_result": classification_result
+    }
+
+    print(send_data)
+    
     await warehouse.put(update_url,
-        data={
-            "classification_status": status,
-            "food_score": score
-        }
+        data=send_data
     )

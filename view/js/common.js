@@ -1,7 +1,7 @@
 const API_BASE_URL = "http://localhost:8000";
 
 async function loadSidebar() {
-    const response = await fetch("/components/sidebar.html");
+    const response = await fetch("./components/sidebar.html");
 
     if (!response.ok) {
         throw new Error("메뉴를 불러오지 못했습니다.");

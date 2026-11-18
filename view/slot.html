@@ -380,6 +380,10 @@ button:disabled { background: #aeb8c4; cursor: not-allowed; }
                     <strong id="processing_status">-</strong>
                 </div>
                 
+                <div class="detail-row">
+                    <span>AI 구분</span>
+                    <strong id="classification_result">-</strong>
+                </div>
                 
                 <div class="action-buttons">
                     <!--
@@ -909,6 +913,8 @@ function renderDetail() {
     document.getElementById("food_score").textContent = "-";
     document.getElementById("processing_status").textContent = "-";
 
+    document.getElementById("classification_result").textContent = "-";
+
     const image = document.getElementById("productImage");
     image.src = "";
     image.hidden = true;
@@ -983,6 +989,8 @@ function renderSlotDetail(data) {
         else 
             document.getElementById("maintenanceButton").disabled = true;
 
+        document.getElementById("classification_result").innerHTML = "-";
+
 
         image.src = "";
         image.hidden = true;
@@ -1005,6 +1013,7 @@ function renderSlotDetail(data) {
     document.getElementById("food_score").textContent = getFoodProbability(data.food_score);
     document.getElementById("processing_status").textContent = data.processing_status ?? "-";
 
+    document.getElementById("classification_result").innerHTML = getClassificationResult(data.classification_result);
 
     document.getElementById("status").textContent =
         selectedSlot ? (statusText[selectedSlot.status] || selectedSlot.status) : "-";
@@ -1081,6 +1090,14 @@ async function toggleMaintenance() {
     } catch (error) {
         alert(error.message);
     }
+}
+
+function getClassificationResult(result) {
+    if (!result) return "-";
+
+    return Object.entries(result)
+        .map(([key, value]) => `${key}: ${(value * 100).toFixed(2)}%`)
+        .join("<br>");
 }
 
 // --------------------------------------------------

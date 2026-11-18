@@ -24,7 +24,8 @@ def get_slot(slot_id: int, db: Session = Depends(get_db)):
             StorageInfo.request_id,
             StorageInfo.expiry_date,
             StorageInfo.food_score,
-            StorageInfo.processing_status
+            StorageInfo.processing_status,
+            StorageInfo.classification_result
         )
         .filter(StorageInfo.slot_id == slot_id)
         .first()
@@ -52,7 +53,8 @@ def get_slot(slot_id: int, db: Session = Depends(get_db)):
         request_id = result.request_id,
         expiry_date=result.expiry_date,
         food_score=result.food_score,
-        processing_status=result.processing_status
+        processing_status=result.processing_status,
+        classification_result=result.classification_result
     )
 
 @router.put("/{slot_id}/status", description="slot 상태 변경. 'empty' 또는  'maintenance'")

@@ -22,6 +22,7 @@ class SlotDetail(BaseModel):
     expiry_date: datetime | None=None
     food_score: float | None=None
     processing_status: str | None=None
+    classification_result: dict[str,float] | None=None
 
 
 class SlotStatusRequest(BaseModel):

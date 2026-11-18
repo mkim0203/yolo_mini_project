@@ -1,0 +1,67 @@
+# 실제 사용 시에는 {{}} 안의 내용을 적절한 값으로 바꾸어 사용하세요.
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: warehouse-postgres
+    environment:
+      POSTGRES_DB: {{DATABASE_NAME}}
+      POSTGRES_USER: {{DATABASE_USER}}
+      POSTGRES_PASSWORD: {{DATABASE_PASSWORD}}
+    ports:
+      - "{{POSTGRES_PORT}}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: warehouse-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: {{PGADMIN_EMAIL}}
+      PGADMIN_DEFAULT_PASSWORD: {{PGADMIN_PASSWORD}}
+    ports:
+      - "{{PGADMIN_PORT}}:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+  api:
+    build: ./warehouse_api
+    container_name: warehouse-api
+    ports:
+      - "{{API_PORT}}:8000"
+    environment:
+      DOCKER_ENV: "true"
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_DATABASE: {{DATABASE_NAME}}
+      DB_USER: {{DATABASE_USER}}
+      DB_PW: {{DATABASE_PASSWORD}}
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+  ai:
+    build: ./warehouse_ai
+    container_name: warehouse-ai
+    ports:
+      - "{{AI_PORT}}:18000"
+    restart: unless-stopped
+
+  scheduler:
+    build: ./warehouse_schedule
+    container_name: warehouse-scheduler
+    environment:
+      DOCKER_ENV: "true"
+      WAREHOUSE_API_URL: http://api:8000
+      WAREHOUSE_AI_URL: http://ai:18000
+    depends_on:
+      - api
+      - ai
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  pgadmin_data:

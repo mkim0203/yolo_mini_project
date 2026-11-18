@@ -37,9 +37,9 @@
 		PUT /slots/{slot_id}/move/{move_slot_id}
 
 
-## 환경 파일 생성후 진행 .env
+## 로컬 테스트시 .env 생성후 테스트 진행
 DB_HOST=localhost
 DB_PORT=5432
-DB_DATABASE=ragdb
+DB_DATABASE=
 DB_USER=
 DB_PW=

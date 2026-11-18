@@ -11,3 +11,6 @@
     2. warehouse api에서 반출 대상 조회
     3. warehouse api에 반출 등록
 
+## 로컬 테스트시 .env 생성후 테스트 진행
+WAREHOUSE_API_URL=http://localhost:8000
+WAREHOUSE_AI_URL=http://localhost:18000

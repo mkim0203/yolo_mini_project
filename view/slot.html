@@ -74,7 +74,20 @@
 .content {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 320px;
+    align-items: stretch;
     gap: 20px;
+    
+}
+
+.warehouse-content {
+    /* grid-template-columns: minmax(0, 1fr) 320px; */
+    
+    min-width: 0;
+}
+
+.detail-panel {
+    height: 100%;
+    box-sizing: border-box;
 }
 
 .panel {
@@ -258,7 +271,13 @@ button:disabled { background: #aeb8c4; cursor: not-allowed; }
 }
 
 @media(max-width: 1000px) {
-    .content { grid-template-columns: 1fr; }
+    .content {
+        grid-template-columns: 1fr;
+    }
+
+    .detail-panel {
+        height: auto;
+    }
 }
 
 @media(max-width: 650px) {
@@ -276,73 +295,73 @@ button:disabled { background: #aeb8c4; cursor: not-allowed; }
     <div id="sidebar-container"></div>
 
     <main class="main">
-
         <div class="header">
             <h1>창고 현황</h1>
             <!-- <span>Warehouse Management</span> -->
         </div>
-
-        <div class="filter-section">
-            <div class="filter-title">창고 동 선택</div>
-            <div class="filter-buttons" id="dongButtons"></div>
-        </div>
-
-        <div class="filter-section">
-            <div class="filter-title">Line 선택</div>
-            <div class="filter-buttons" id="lineButtons"></div>
-        </div>
-
-        <div id="apiError" class="error-message"></div>
-
-        <div class="summary">
-            <div class="summary-card">
-                <span>전체 슬롯</span>
-                <strong id="total">0</strong>
-            </div>
-            <div class="summary-card">
-                <span>사용 중</span>
-                <strong class="status-used-text" id="used">0</strong>
-            </div>
-            <div class="summary-card">
-                <span>빈 공간</span>
-                <strong class="status-empty-text" id="empty">0</strong>
-            </div>
-            <div class="summary-card">
-                <span>점검 중</span>
-                <strong class="status-maintenance-text" id="maintenance">0</strong>
-            </div>
-        </div>
-
         <div class="content">
+            <div class="warehouse-content">
+                <div class="filter-section">
+                    <div class="filter-title">창고 동 선택</div>
+                    <div class="filter-buttons" id="dongButtons"></div>
+                </div>
 
-            <section class="panel">
-                <h3 id="rackTitle">창고 정보를 불러오는 중...</h3>
+                <div class="filter-section">
+                    <div class="filter-title">Line 선택</div>
+                    <div class="filter-buttons" id="lineButtons"></div>
+                </div>
 
-                <div class="legend">
-                    <div class="legend-item">
-                        <div class="legend-color" style="background:#b8e2cb"></div>
-                        사용 중
+                <div id="apiError" class="error-message"></div>
+
+                <div class="summary">
+                    <div class="summary-card">
+                        <span>전체 슬롯</span>
+                        <strong id="total">0</strong>
                     </div>
-                    <div class="legend-item">
-                        <div class="legend-color" style="background:#ffebba"></div>
-                        빈 공간
+                    <div class="summary-card">
+                        <span>사용 중</span>
+                        <strong class="status-used-text" id="used">0</strong>
                     </div>
-                    <div class="legend-item">
-                        <div class="legend-color" style="background:#f5c6c6"></div>
-                        점검
+                    <div class="summary-card">
+                        <span>빈 공간</span>
+                        <strong class="status-empty-text" id="empty">0</strong>
                     </div>
-                    <div class="legend-item">
-                        <div class="legend-color" style="background:#dbeafe;border:1px solid #2879d0"></div>
-                        이동 대상
+                    <div class="summary-card">
+                        <span>점검 중</span>
+                        <strong class="status-maintenance-text" id="maintenance">0</strong>
                     </div>
                 </div>
 
-                <div class="scene">
-                    <div class="rack" id="rack"></div>
-                </div>
-            </section>
+                <section class="panel">
+                    <h3 id="rackTitle">창고 정보를 불러오는 중...</h3>
 
-            <section class="panel">
+                    <div class="legend">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background:#b8e2cb"></div>
+                            사용 중
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background:#ffebba"></div>
+                            빈 공간
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background:#f5c6c6"></div>
+                            점검
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background:#dbeafe;border:1px solid #2879d0"></div>
+                            이동 대상
+                        </div>
+                    </div>
+
+                    <div class="scene">
+                        <div class="rack" id="rack"></div>
+                    </div>
+                </section>
+
+            </div>
+
+            <section class="panel detail-panel">
                 <h3>슬롯 상세정보</h3>
 
                 <div class="detail-image">
@@ -357,7 +376,7 @@ button:disabled { background: #aeb8c4; cursor: not-allowed; }
 
                 <div class="detail-row">
                     <span>상태</span>
-                    <strong id="status">-</strong>
+                    <strong id="status">정보 없음</strong>
                 </div>
 
                 <div class="detail-row">
@@ -382,7 +401,7 @@ button:disabled { background: #aeb8c4; cursor: not-allowed; }
                 
                 <div class="detail-row">
                     <span>AI 구분</span>
-                    <strong id="classification_result">-</strong>
+                    <strong id="classification_result">정보 없음</strong>
                 </div>
                 
                 <div class="action-buttons">
@@ -905,15 +924,15 @@ function renderDetail() {
             : "슬롯을 선택하세요.";
 
     document.getElementById("status").textContent =
-        slot ? (statusText[slot.status] || slot.status) : "-";
+        slot ? (statusText[slot.status] || slot.status) : "정보 없음";
 
     document.getElementById("request_id").textContent = "-";
-    document.getElementById("expiry").textContent = "-";
+    document.getElementById("expiry").textContent = "정보 없음";
 
     document.getElementById("food_score").textContent = "-";
     document.getElementById("processing_status").textContent = "-";
 
-    document.getElementById("classification_result").textContent = "-";
+    document.getElementById("classification_result").textContent = "정보 없음";
 
     const image = document.getElementById("productImage");
     image.src = "";
@@ -975,11 +994,11 @@ function renderSlotDetail(data) {
     };
 
     if (data === null) {
-        document.getElementById("slot_info").textContent = "-";
+        document.getElementById("slot_info").textContent = "정보 없음";
         document.getElementById("request_id").textContent = "-";
         document.getElementById("expiry").textContent = "-";
         document.getElementById("status").textContent =
-            selectedSlot ? (statusText[selectedSlot.status] || selectedSlot.status) : "-";
+            selectedSlot ? (statusText[selectedSlot.status] || selectedSlot.status) : "정보 없음";
 
         document.getElementById("food_score").textContent = "-";
         document.getElementById("processing_status").textContent = "-";
@@ -989,7 +1008,7 @@ function renderSlotDetail(data) {
         else 
             document.getElementById("maintenanceButton").disabled = true;
 
-        document.getElementById("classification_result").innerHTML = "-";
+        document.getElementById("classification_result").innerHTML = "정보 없음";
 
 
         image.src = "";
@@ -1001,7 +1020,7 @@ function renderSlotDetail(data) {
     }
 
     document.getElementById("slot_info").textContent =
-        data.slot_info ?? "-";
+        data.slot_info ?? "정보 없음";
 
     document.getElementById("request_id").textContent =
         data.request_id ?? "-";
@@ -1016,7 +1035,7 @@ function renderSlotDetail(data) {
     document.getElementById("classification_result").innerHTML = getClassificationResult(data.classification_result);
 
     document.getElementById("status").textContent =
-        selectedSlot ? (statusText[selectedSlot.status] || selectedSlot.status) : "-";
+        selectedSlot ? (statusText[selectedSlot.status] || selectedSlot.status) : "정보 없음";
 
     if (data.image_data && data.image_type) {
         image.src = `data:${data.image_type};base64,${data.image_data}`;

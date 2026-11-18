@@ -17,3 +17,6 @@ python-multipart
 
 # 이미지 분석
 tensorflow
+
+# 이미지 로드 관련.
+Pillow

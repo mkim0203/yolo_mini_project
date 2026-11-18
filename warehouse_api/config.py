@@ -2,7 +2,8 @@ import os
 from dotenv import load_dotenv
 from dataclasses import dataclass
 
-load_dotenv()
+if not os.getenv("DOCKER_ENV"):
+    load_dotenv()
 
 @dataclass(frozen=True)
 class AppConfig:
@@ -12,11 +13,11 @@ class AppConfig:
     DB_USER=os.getenv("DB_USER")
     DB_PW=os.getenv("DB_PW")
 
-    RAG_EMB_MODEL=os.getenv("RAG_EMB_MODEL")
+    # RAG_EMB_MODEL=os.getenv("RAG_EMB_MODEL")
 
-    RAG_LLM_MODEL=os.getenv("RAG_LLM_MODEL")
-    RAG_LLM_TEMPERATURE=os.getenv("RAG_LLM_TEMPERATURE")
-    RAG_PROMPT_VER=os.getenv("RAG_PROMPT_VER")
+    # RAG_LLM_MODEL=os.getenv("RAG_LLM_MODEL")
+    # RAG_LLM_TEMPERATURE=os.getenv("RAG_LLM_TEMPERATURE")
+    # RAG_PROMPT_VER=os.getenv("RAG_PROMPT_VER")
     
     
 
@@ -30,7 +31,3 @@ class AppConfig:
         
 APP_CONFIG = AppConfig()
 
-
-if __name__ == "__main__":
-    print(APP_CONFIG.DB_HOST)
-    print(APP_CONFIG.RAG_EMB_MODEL)

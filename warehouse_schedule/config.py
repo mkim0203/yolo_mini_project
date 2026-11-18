@@ -1,5 +1,11 @@
-WAREHOUSE_API_URL = "http://192.168.0.2:8000"
-WAREHOUSE_AI_URL = "http://192.168.0.2:18000"
+import os
+from dotenv import load_dotenv
+
+if not os.getenv("DOCKER_ENV"):
+    load_dotenv()
+
+WAREHOUSE_API_URL = os.getenv("WAREHOUSE_API_URL")
+WAREHOUSE_AI_URL = os.getenv("WAREHOUSE_AI_URL")
 
 # 스케줄링 작업 설정
 SCHEDULE_JOBS = [

@@ -6,13 +6,6 @@ pandas
 matplotlib
 seaborn
 
-# 머신러닝
-scikit-learn
-
-# 주피터 노트북
-jupyter
-ipykernel
-
 # 환경변수 관리
 python-dotenv
 
@@ -28,9 +21,3 @@ psycopg[binary]
 # fast api 서비스 실행
 uvicorn
 python-multipart
-
-# 이미지 분석
-tensorflow
-
-# 스케줄러
-apscheduler<4

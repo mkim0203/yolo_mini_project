@@ -26,3 +26,6 @@ CALL create_warehouse_slots(1, 'A', 12, 4);
 CALL create_warehouse_slots(1, 'B', 10, 3);
 -- C Line: 8열, 2층
 CALL create_warehouse_slots(1, 'C', 8, 2);    
+
+CALL create_warehouse_slots(2, 'A', 4, 3);    
+CALL create_warehouse_slots(2, 'B', 5, 2);    

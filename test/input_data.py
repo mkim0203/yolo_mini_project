@@ -11,7 +11,7 @@ from datetime import datetime, timedelta, timezone
 
 # 설정
 IMAGE_DIR = Path("./images")
-API_URL = "http://127.0.0.1:8000/requests/request"
+API_URL = "http://192.168.0.2:8000/requests/request"
 
 
 def get_file_info(file_path: Path):

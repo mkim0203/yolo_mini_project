@@ -293,6 +293,7 @@ button:disabled { background: #aeb8c4; cursor: not-allowed; }
 <div class="layout">
 
     <div id="sidebar-container"></div>
+    <div id="image-modal-container"></div>
 
     <main class="main">
         <div class="header">
@@ -365,7 +366,7 @@ button:disabled { background: #aeb8c4; cursor: not-allowed; }
                 <h3>슬롯 상세정보</h3>
 
                 <div class="detail-image">
-                    <img id="productImage" alt="상품 이미지" hidden>
+                    <img id="productImage" alt="상품 이미지" hidden onclick="openImageModal(this.src)">
                     <span id="noImage" class="no-image">이미지가 없습니다.</span>
                 </div>
 

@@ -56,4 +56,66 @@ function getFoodProbability(score) {
     }
 }
 
+
+async function loadImageModal() {
+    let obj = document.getElementById("image-modal-container");
+    if (obj == null) { return;}
+
+    const response = await fetch("./components/image-modal.html");
+
+    if (!response.ok) {
+        throw new Error("이미지 모달을 불러오지 못했습니다.");
+    }
+
+    const html = await response.text();
+
+    document.getElementById("image-modal-container").innerHTML = html;
+
+    initImageModal();
+}
+
+// 이미지 확대
+function openImageModal(imageSrc) {
+    if (!imageSrc) return;
+
+    const modal = document.getElementById("imageModal");
+    const modalImage = document.getElementById("modalImage");
+
+    if (!modal || !modalImage) return;
+
+    modalImage.src = imageSrc;
+    modal.classList.add("active");
+}
+
+// 이미지 모달 닫기
+function closeImageModal() {
+    const modal = document.getElementById("imageModal");
+    const modalImage = document.getElementById("modalImage");
+
+    if (!modal || !modalImage) return;
+
+    modal.classList.remove("active");
+    modalImage.src = "";
+}
+
+// 모달 초기화
+function initImageModal() {
+    const modal = document.getElementById("imageModal");
+
+    if (!modal) return;
+
+    modal.addEventListener("click", function (event) {
+        if (event.target === modal) {
+            closeImageModal();
+        }
+    });
+
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") {
+            closeImageModal();
+        }
+    });
+}
+
 document.addEventListener("DOMContentLoaded", loadSidebar);
+document.addEventListener("DOMContentLoaded", loadImageModal);

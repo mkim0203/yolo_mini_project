@@ -7,11 +7,11 @@ from PIL import Image
 from tensorflow.keras.applications.vgg16 import preprocess_input
 
 CLASS_NAMES = [
-    "produce",
+    "fruit_vegetable",
     "sea_food",
     "meat",
-    "grain",
-    #"processed_food",
+    "grain_nut_legume",
+    "dairy",
     "etc"
 ]
 
@@ -21,7 +21,7 @@ food_model = tf.keras.models.load_model(
 
 
 item_model = tf.keras.models.load_model(
-    "./models/vgg16_5item_classifier.keras",
+    "./models/vgg16_item_classifier.keras",
     custom_objects={
         "preprocess_input": preprocess_input
     }

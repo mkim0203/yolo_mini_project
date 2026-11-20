@@ -198,6 +198,7 @@
 
 <div class="layout">
     <div id="sidebar-container"></div>
+    <div id="image-modal-container"></div>
 
     <main class="main">
 
@@ -408,7 +409,7 @@
                     <img
                         class="slot-image"
                         src="data:${data.image_type};base64,${data.image_data}"
-                        alt="슬롯 이미지"
+                        alt="슬롯 이미지" onclick="openImageModal(this.src)"
                     >
                 `;
 

@@ -50,6 +50,22 @@ services:
     ports:
       - "{{AI_PORT}}:18000"
     restart: unless-stopped
+  llm:
+    build: ./warehouse_llm
+    container_name: warehouse-llm
+    ports:
+      - "{{LLM_PORT}}:28000"
+    environment:
+      DOCKER_ENV: "true"
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_DATABASE: {{DATABASE_NAME}}
+      DB_USER: {{DATABASE_LLM_USER}}
+      DB_PW: {{DATABASE_LLM_PASSWORD}}
+      LLM_MODEL: {{LLM_MODEL}}
+      LLM_TEMPERATURE: {{LLM_TEMPERATURE}}
+      OPENAI_API_KEY: {{OPENAI_API_KEY}}
+    restart: unless-stopped
 
   scheduler:
     build: ./warehouse_schedule

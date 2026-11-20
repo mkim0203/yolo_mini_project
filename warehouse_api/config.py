@@ -23,9 +23,7 @@ class AppConfig:
 
     @classmethod
     def validate(cls):
-        if not cls.OPENAI_API_KEY:
-            raise ValueError("OPENAI_API_KEY가 설정되지 않았습니다.")
-
+        
         if not cls.RAG_DB_PW:
             raise ValueError("RAG_DB_PW가 설정되지 않았습니다.")
         

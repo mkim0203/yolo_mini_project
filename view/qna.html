@@ -1,0 +1,477 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Q&A</title>
+
+    <link rel="stylesheet" href="./css/common.css">
+
+    <style>
+        .qna-container {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 130px);
+            min-height: 400px;
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        /* 채팅 메시지 영역 */
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .chat-welcome {
+            margin: auto;
+            text-align: center;
+            color: #6b7280;
+        }
+
+        .chat-welcome h2 {
+            color: #374151;
+            margin-bottom: 10px;
+        }
+
+        .chat-welcome p {
+            font-size: 14px;
+        }
+
+        /* 메시지 공통 */
+        .message {
+            display: flex;
+            gap: 10px;
+            max-width: 85%;
+        }
+
+        .message.user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .message.ai {
+            align-self: flex-start;
+        }
+
+        .message-avatar {
+            width: 35px;
+            height: 35px;
+            min-width: 35px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 13px;
+            font-weight: bold;
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .message.user .message-avatar {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+
+        .message-content {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .message-name {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .message.user .message-name {
+            text-align: right;
+        }
+
+        .message-bubble {
+            padding: 12px 16px;
+            border-radius: 12px;
+            background: #f3f4f6;
+            color: #374151;
+            font-size: 14px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        .message.user .message-bubble {
+            background: #2563eb;
+            color: #fff;
+            border-top-right-radius: 3px;
+        }
+
+        .message.ai .message-bubble {
+            border-top-left-radius: 3px;
+        }
+
+        /* 입력 영역 */
+        .chat-input-area {
+            border-top: 1px solid #e5e7eb;
+            padding: 15px 20px;
+            background: #fff;
+        }
+
+        .chat-input-box {
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+            max-width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 10px;
+            background: #fff;
+        }
+
+        .chat-input-box:focus-within {
+            border-color: #2563eb;
+        }
+
+        #questionInput {
+            flex: 1;
+            resize: none;
+            border: none;
+            outline: none;
+            padding: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            min-height: 24px;
+            max-height: 120px;
+            background: transparent;
+        }
+
+        #sendButton {
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 8px;
+            background: #2563eb;
+            color: #fff;
+            cursor: pointer;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        #sendButton:hover {
+            background: #1d4ed8;
+        }
+
+        #sendButton:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .input-guide {
+            margin-top: 8px;
+            text-align: center;
+            font-size: 11px;
+            color: #9ca3af;
+        }
+
+        /* 로딩 */
+        .loading-dots {
+            display: flex;
+            gap: 5px;
+            padding: 5px 0;
+        }
+
+        .loading-dots span {
+            width: 7px;
+            height: 7px;
+            background: #9ca3af;
+            border-radius: 50%;
+            animation: loading 1.2s infinite ease-in-out;
+        }
+
+        .loading-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .loading-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes loading {
+            0%, 80%, 100% {
+                transform: scale(0.6);
+                opacity: 0.5;
+            }
+            40% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .qna-container {
+                height: calc(100vh - 150px);
+            }
+
+            .chat-messages {
+                padding: 15px;
+            }
+
+            .message {
+                max-width: 95%;
+            }
+        }
+    </style>
+</head>
+
+<body data-page="qna">
+
+<div class="layout">
+    <div id="sidebar-container"></div>
+
+    <main class="main">
+
+        <div class="header">
+            <h1>Q&A</h1>
+            <span>궁금한 점을 질문하세요.</span>
+        </div>
+
+        <div class="qna-container">
+
+            <!-- 채팅 메시지 -->
+            <div id="chatMessages" class="chat-messages">
+
+                <div class="chat-welcome" id="welcomeMessage">
+                    <h2>무엇을 도와드릴까요?</h2>
+                    <p>창고 관리 데이터에 대해 질문해 보세요.</p>
+                </div>
+
+            </div>
+
+            <!-- 질문 입력 -->
+            <div class="chat-input-area">
+
+                <div class="chat-input-box">
+
+                    <textarea
+                        id="questionInput"
+                        placeholder="질문을 입력하세요."
+                        rows="1"
+                    ></textarea>
+
+                    <button
+                        type="button"
+                        id="sendButton"
+                        title="질문 전송"
+                        onclick="sendQuestion()"
+                    >
+                        ↑
+                    </button>
+
+                </div>
+
+                <div class="input-guide">
+                    Enter 전송 · Shift + Enter 줄바꿈
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+</div>
+
+<script src="./js/common.js"></script>
+
+<script>
+    const chatMessages = document.getElementById("chatMessages");
+    const questionInput = document.getElementById("questionInput");
+    const sendButton = document.getElementById("sendButton");
+
+    let isSending = false;
+
+    // 메시지 추가
+    function addMessage(type, content) {
+
+        const welcome = document.getElementById("welcomeMessage");
+
+        if (welcome) {
+            welcome.remove();
+        }
+
+        const message = document.createElement("div");
+        message.className = `message ${type}`;
+
+        const avatar = document.createElement("div");
+        avatar.className = "message-avatar";
+        avatar.textContent = type === "user" ? "ME" : "AI";
+
+        const messageContent = document.createElement("div");
+        messageContent.className = "message-content";
+
+        const name = document.createElement("div");
+        name.className = "message-name";
+        name.textContent = type === "user" ? "나" : "AI Assistant";
+
+        const bubble = document.createElement("div");
+        bubble.className = "message-bubble";
+
+        // HTML 삽입을 방지하기 위해 textContent 사용
+        bubble.textContent = content;
+
+        messageContent.appendChild(name);
+        messageContent.appendChild(bubble);
+
+        message.appendChild(avatar);
+        message.appendChild(messageContent);
+
+        chatMessages.appendChild(message);
+
+        scrollToBottom();
+
+        return message;
+    }
+
+    // 로딩 메시지
+    function addLoading() {
+
+        const message = document.createElement("div");
+        message.className = "message ai";
+        message.id = "loadingMessage";
+
+        message.innerHTML = `
+            <div class="message-avatar">AI</div>
+            <div class="message-content">
+                <div class="message-name">AI Assistant</div>
+                <div class="message-bubble">
+                    <div class="loading-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        chatMessages.appendChild(message);
+
+        scrollToBottom();
+    }
+
+    // 로딩 제거
+    function removeLoading() {
+
+        const loading = document.getElementById("loadingMessage");
+
+        if (loading) {
+            loading.remove();
+        }
+    }
+
+    // 스크롤 하단 이동
+    function scrollToBottom() {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // 질문 전송
+    async function sendQuestion() {
+
+        const question = questionInput.value.trim();
+
+        if (!question || isSending) {
+            return;
+        }
+
+        isSending = true;
+        sendButton.disabled = true;
+        questionInput.disabled = true;
+
+        // 사용자 질문 표시
+        addMessage("user", question);
+
+        questionInput.value = "";
+        questionInput.style.height = "auto";
+
+        addLoading();
+
+        try {
+
+            const response = await fetch(`${API_ASK_BASE_URL}/ask`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    question: question
+                })
+            });
+
+            if (!response.ok) {
+
+                const errorData = await response.json().catch(() => null);
+
+                throw new Error(
+                    errorData?.detail ||
+                    `서버 오류가 발생했습니다. (${response.status})`
+                );
+            }
+
+            const data = await response.json();
+
+            if (typeof data.answer !== "string") {
+                throw new Error("서버 응답 형식이 올바르지 않습니다.");
+            }
+
+            removeLoading();
+
+            // AI 답변 표시
+            addMessage("ai", data.answer);
+
+        } catch (error) {
+
+            removeLoading();
+
+            addMessage(
+                "ai",
+                "질문 처리 중 오류가 발생했습니다.\n" + error.message
+            );
+
+            console.error("Q&A API 오류:", error);
+
+        } finally {
+
+            isSending = false;
+            sendButton.disabled = false;
+            questionInput.disabled = false;
+            questionInput.focus();
+
+        }
+    }
+
+    // Enter 전송 / Shift + Enter 줄바꿈
+    questionInput.addEventListener("keydown", function(event) {
+
+        if (event.key === "Enter" && !event.shiftKey) {
+            event.preventDefault();
+            sendQuestion();
+        }
+
+    });
+
+    // 입력창 높이 자동 조절
+    questionInput.addEventListener("input", function() {
+
+        this.style.height = "auto";
+        this.style.height = Math.min(this.scrollHeight, 120) + "px";
+
+    });
+
+</script>
+
+</body>
+</html>

@@ -1,4 +1,5 @@
 const API_BASE_URL = "http://192.168.0.2:8000";
+const API_ASK_BASE_URL = "http://192.168.0.2:28000";
 
 async function loadSidebar() {
     const response = await fetch("./components/sidebar.html");

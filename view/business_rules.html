@@ -1,0 +1,665 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>비즈니스 룰 관리</title>
+
+    <link rel="stylesheet" href="./css/common.css">
+
+    <style>
+        .rule-toolbar {
+            display: flex;
+            justify-content: flex-end;
+            margin: 20px 0;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 5px;
+            padding: 8px 14px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+        }
+
+        .btn-success {
+            background: #16a34a;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #dc2626;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #64748b;
+            color: white;
+        }
+
+        .rule-table-wrap {
+            background: white;
+            border-radius: 8px;
+            overflow-x: auto;
+            border: 1px solid #e5e7eb;
+        }
+
+        .rule-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            min-width: 900px;
+        }
+
+        .rule-table th,
+        .rule-table td {
+            padding: 13px 12px;
+            border-bottom: 1px solid #e5e7eb;
+            text-align: left;
+        }
+
+        .rule-table th {
+            background: #f8fafc;
+            font-weight: 600;
+            color: #475569;
+        }
+
+        .rule-table tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        .rule-content {
+            max-width: 300px;
+            white-space: normal;
+            word-break: break-word;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-approved {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-rejected {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .status-actions {
+            display: flex;
+            gap: 5px;
+            margin-top: 7px;
+        }
+
+        .status-actions .btn {
+            padding: 5px 9px;
+            font-size: 11px;
+        }
+
+        .active-yes {
+            color: #16a34a;
+            font-weight: 600;
+        }
+
+        .active-no {
+            color: #dc2626;
+            font-weight: 600;
+        }
+
+        .empty-message {
+            text-align: center !important;
+            padding: 40px !important;
+            color: #94a3b8;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            width: 100%;
+            max-width: 550px;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 22px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .modal-header h2 {
+            font-size: 18px;
+            margin: 0;
+        }
+
+        .modal-close {
+            border: none;
+            background: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #64748b;
+        }
+
+        .modal-body {
+            padding: 22px;
+        }
+
+        .form-group {
+            margin-bottom: 17px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 7px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 5px;
+            font-size: 13px;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-help {
+            display: block;
+            color: #94a3b8;
+            font-size: 11px;
+            margin-top: 5px;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            padding: 15px 22px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .active-actions {
+            margin-top: 6px;
+        }
+
+        .active-actions .btn {
+            padding: 5px 9px;
+            font-size: 11px;
+        }
+
+        @media (max-width: 768px) {
+            .rule-toolbar {
+                margin-top: 15px;
+            }
+
+            .modal {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body data-page="business_rules">
+
+<div class="layout">
+    <div id="sidebar-container"></div>
+
+    <main class="main">
+
+        <div class="header">
+            <h1>비즈니스 룰</h1>
+            <span>관리 중인 룰</span>
+        </div>
+
+        <!-- 룰 목록 -->
+        <div class="rule-toolbar">
+            <button class="btn btn-primary" onclick="openRuleModal()">
+                + 룰 추가
+            </button>
+        </div>
+
+        <div class="rule-table-wrap">
+            <table class="rule-table">
+                <thead>
+                    <tr>
+                        <th style="width:60px;">ID</th>
+                        <th style="width:150px;">룰 이름</th>
+                        <th style="width:100px;">카테고리</th>
+                        <th style="width:150px;">대상 테이블</th>
+                        <th>룰 내용</th>
+                        <th style="width:180px;">상태 / 관리</th>
+                        <th style="width:80px;">활성화</th>
+                        <th style="width:160px;">등록일</th>
+                        <th style="width:80px;">관리</th>
+                    </tr>
+                </thead>
+
+                <tbody id="ruleList">
+                    <tr>
+                        <td colspan="9" class="empty-message">
+                            데이터를 불러오는 중입니다.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </main>
+</div>
+
+<!-- 룰 추가 팝업 -->
+<div class="modal-overlay" id="ruleModal">
+    <div class="modal">
+
+        <div class="modal-header">
+            <h2>비즈니스 룰 추가</h2>
+            <button class="modal-close" onclick="closeRuleModal()">
+                &times;
+            </button>
+        </div>
+
+        <div class="modal-body">
+
+            <div class="form-group">
+                <label for="ruleName">룰 이름</label>
+                <input type="text" id="ruleName"
+                       placeholder="룰 이름을 입력하세요">
+            </div>
+
+            <div class="form-group">
+                <label for="category">카테고리</label>
+                <select id="category">
+                    <option value="BUSINESS">BUSINESS</option>
+                    <option value="SYSTEM">SYSTEM</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="targetTables">대상 테이블</label>
+                <input type="text" id="targetTables"
+                       placeholder="warehouse_slot, warehouse">
+                <span class="form-help">
+                    여러 테이블은 쉼표(,)로 구분합니다.
+                </span>
+            </div>
+
+            <div class="form-group">
+                <label for="ruleContent">룰 내용</label>
+                <textarea id="ruleContent"
+                          placeholder="비즈니스 룰 내용을 입력하세요"></textarea>
+            </div>
+
+        </div>
+
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeRuleModal()">
+                취소
+            </button>
+            <button class="btn btn-primary" id="createRuleBtn"
+                    onclick="createRule()">
+                등록
+            </button>
+        </div>
+
+    </div>
+</div>
+
+<script src="./js/common.js"></script>
+
+<script>
+const API_URL = `${API_BASE_URL}/business-rules`;
+
+// 전체 룰 목록 조회
+async function loadRules() {
+    const tbody = document.getElementById("ruleList");
+
+    try {
+        const response = await fetch(API_URL);
+
+        if (!response.ok) {
+            throw new Error("목록 조회 실패");
+        }
+
+        const rules = await response.json();
+
+        tbody.replaceChildren();
+
+        if (rules.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="8" class="empty-message">
+                        등록된 비즈니스 룰이 없습니다.
+                    </td>
+                </tr>`;
+            return;
+        }
+
+        rules.forEach(rule => {
+            const tr = document.createElement("tr");
+
+            function addCell(value, className = "") {
+                const td = document.createElement("td");
+                td.textContent = value ?? "-";
+                if (className) td.className = className;
+                tr.appendChild(td);
+                return td;
+            }
+
+            addCell(rule.rule_id);
+            addCell(rule.rule_name);
+            addCell(rule.category);
+            addCell((rule.target_tables || []).join(", "));
+            addCell(rule.rule_content, "rule-content");
+
+            // 상태
+            const statusTd = document.createElement("td");
+
+            const badge = document.createElement("span");
+            badge.className = `status status-${rule.status}`;
+            badge.textContent = rule.status || "-";
+            statusTd.appendChild(badge);
+
+            // pending인 경우 승인/반려 버튼 제공
+            if (rule.status === "pending") {
+                const actions = document.createElement("div");
+                actions.className = "status-actions";
+
+                const approveBtn = document.createElement("button");
+                approveBtn.className = "btn btn-success";
+                approveBtn.textContent = "승인";
+                approveBtn.onclick = () =>
+                    updateStatus(rule.rule_id, "approved");
+
+                const rejectBtn = document.createElement("button");
+                rejectBtn.className = "btn btn-danger";
+                rejectBtn.textContent = "반려";
+                rejectBtn.onclick = () =>
+                    updateStatus(rule.rule_id, "rejected");
+
+                actions.append(approveBtn, rejectBtn);
+                statusTd.appendChild(actions);
+            }
+
+            tr.appendChild(statusTd);
+
+            // 활성화
+            const activeTd = document.createElement("td");
+            activeTd.textContent = rule.is_active === "Y" ? "활성" : "비활성";
+            activeTd.className =
+                rule.is_active === "Y" ? "active-yes" : "active-no";
+
+            const activeBtn = document.createElement("button");
+            activeBtn.className = rule.is_active === "Y"
+                ? "btn btn-danger"
+                : "btn btn-success";
+
+            activeBtn.textContent = rule.is_active === "Y"
+                ? "비활성"
+                : "활성화";
+
+            activeBtn.onclick = () =>
+                updateActive(rule.rule_id, rule.is_active === "Y" ? "N" : "Y");
+
+            const activeActions = document.createElement("div");
+            activeActions.className = "active-actions";
+            activeActions.appendChild(activeBtn);
+
+            activeTd.appendChild(activeActions);
+            tr.appendChild(activeTd);
+
+            // 등록일
+            const dateTd = document.createElement("td");
+            dateTd.textContent = rule.create_date
+                ? formatDate(rule.create_date)
+                : "-";
+            tr.appendChild(dateTd);
+
+            // 삭제 버튼
+            const deleteTd = document.createElement("td");
+
+            const deleteBtn = document.createElement("button");
+            deleteBtn.className = "btn btn-danger";
+            deleteBtn.textContent = "삭제";
+
+            deleteBtn.onclick = () => deleteRule(rule.rule_id);
+
+            deleteTd.appendChild(deleteBtn);
+            tr.appendChild(deleteTd);
+
+            tbody.appendChild(tr);
+
+            tbody.appendChild(tr);
+        });
+
+    } catch (error) {
+        console.error(error);
+
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="8" class="empty-message">
+                    룰 목록을 불러오지 못했습니다.
+                </td>
+            </tr>`;
+    }
+}
+
+// 승인 / 반려
+async function updateStatus(ruleId, status) {
+    const action = status === "approved" ? "승인" : "반려";
+
+    if (!confirm(`해당 룰을 ${action}하시겠습니까?`)) {
+        return;
+    }
+
+    try {
+        const response = await fetch(
+            `${API_URL}/${ruleId}/status`,
+            {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ status })
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error(`${action} 처리 실패`);
+        }
+
+        alert(`${action} 처리되었습니다.`);
+        await loadRules();
+
+    } catch (error) {
+        console.error(error);
+        alert(`${action} 처리 중 오류가 발생했습니다.`);
+    }
+}
+
+// 활성화 / 비활성화
+async function updateActive(ruleId, isActive) {
+    const action = isActive === "Y" ? "활성화" : "비활성화";
+
+    if (!confirm(`해당 룰을 ${action}하시겠습니까?`)) {
+        return;
+    }
+
+    try {
+        const response = await fetch(
+            `${API_URL}/${ruleId}/active`,
+            {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    is_active: isActive
+                })
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error(`${action} 처리 실패`);
+        }
+
+        alert(`${action} 처리되었습니다.`);
+
+        await loadRules();
+
+    } catch (error) {
+        console.error(error);
+        alert(`${action} 처리 중 오류가 발생했습니다.`);
+    }
+}
+
+// 룰 삭제
+async function deleteRule(ruleId) {
+
+    if (!confirm(`룰 ID ${ruleId}를 삭제하시겠습니까?\n삭제된 룰은 복구할 수 없습니다.`)) {
+        return;
+    }
+
+    try {
+        const response = await fetch(
+            `${API_URL}/${ruleId}`,
+            {
+                method: "DELETE"
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error("룰 삭제 실패");
+        }
+
+        alert("룰이 삭제되었습니다.");
+
+        await loadRules();
+
+    } catch (error) {
+        console.error(error);
+        alert("룰 삭제 중 오류가 발생했습니다.");
+    }
+}
+
+// 팝업 열기
+function openRuleModal() {
+    document.getElementById("ruleModal").classList.add("show");
+}
+
+// 팝업 닫기
+function closeRuleModal() {
+    document.getElementById("ruleModal").classList.remove("show");
+}
+
+// 룰 등록
+async function createRule() {
+    const ruleName = document.getElementById("ruleName").value.trim();
+    const category = document.getElementById("category").value;
+    const targetTables =
+        document.getElementById("targetTables").value.trim();
+    const ruleContent =
+        document.getElementById("ruleContent").value.trim();
+
+    if (!ruleName || !ruleContent) {
+        alert("룰 이름과 룰 내용을 입력해주세요.");
+        return;
+    }
+
+    const data = {
+        rule_name: ruleName,
+        category: category,
+        target_tables: targetTables
+            ? targetTables.split(",").map(x => x.trim()).filter(Boolean)
+            : [],
+        rule_content: ruleContent
+    };
+
+    const button = document.getElementById("createRuleBtn");
+    button.disabled = true;
+
+    try {
+        const response = await fetch(API_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (!response.ok) {
+            throw new Error("룰 등록 실패");
+        }
+
+        alert("룰이 등록되었습니다.");
+
+        closeRuleModal();
+
+        document.getElementById("ruleName").value = "";
+        document.getElementById("targetTables").value = "";
+        document.getElementById("ruleContent").value = "";
+
+        await loadRules();
+
+    } catch (error) {
+        console.error(error);
+        alert("룰 등록 중 오류가 발생했습니다.");
+    } finally {
+        button.disabled = false;
+    }
+}
+
+// 팝업 외부 클릭 시 닫기
+document.getElementById("ruleModal").addEventListener("click", function(e) {
+    if (e.target === this) {
+        closeRuleModal();
+    }
+});
+
+// 최초 목록 조회
+document.addEventListener("DOMContentLoaded", loadRules);
+</script>
+
+</body>
+</html>

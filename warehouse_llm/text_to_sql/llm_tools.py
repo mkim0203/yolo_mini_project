@@ -56,10 +56,29 @@ def get_db_table_relationships(db):
 
     return [dict(row) for row in rows]
 
+def get_db_business_rules(db):
+    query = text("""
+        SELECT
+            rule_id,
+            rule_name,
+            category,
+            target_tables,
+            rule_content
+        FROM business_rules
+        WHERE status = 'approved'
+        AND is_active = 'Y'
+        ORDER BY rule_id
+    """)
+
+    rows = db.execute(query).mappings().all()
+
+    result = [dict(row) for row in rows]
 
 @tool
 def get_database_schema():
-    """PostgreSQL의 현재 테이블과 컬럼 구조를 조회합니다."""
+    """
+    wharehouse 데이터베이스의 현재 테이블과 컬럼 구조를 조회합니다.
+    """
 
     db = SessionLocal()
 
@@ -77,7 +96,9 @@ def get_database_schema():
 
 @tool
 def get_database_relationships():
-    """PostgreSQL의 현재 테이블 간 관계를 조회합니다."""
+    """
+    wharehouse 데이터베이스의 현재 테이블 간 관계를 조회합니다.
+    """
 
     db = SessionLocal()
 
@@ -95,7 +116,7 @@ def get_database_relationships():
 
 @tool
 def execute_readonly_sql(sql_query: str):
-    """PostgreSQL에서 읽기 전용 SQL 쿼리를 실행합니다."""
+    """wharehouse 데이터베이스에서 읽기 전용 SQL 쿼리를 실행합니다."""
 
     valid = validate_sql(sql_query);
     if not valid:
@@ -116,3 +137,38 @@ def execute_readonly_sql(sql_query: str):
 
     finally:
         db.close()        
+
+
+@tool
+def get_approved_rules():
+    """
+    승인되고 활성화된 비즈니스 룰을 조회합니다.
+    SQL 생성 및 데이터 분석 시 업무 규칙을 확인하기 위해 사용합니다.
+    """
+
+    db = SessionLocal()
+
+    try:
+        result = get_db_business_rules(db)
+
+        if not result:
+            return {
+                "success": True,
+                "count": 0,
+                "rules": []
+            }
+
+        return {
+            "success": True,
+            "count": len(result),
+            "rules": result
+        }
+
+    except Exception as e:
+        return {
+            "success": False,
+            "message": f"비즈니스 룰 조회 실패: {str(e)}"
+        }
+
+    finally:
+        db.close()

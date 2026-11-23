@@ -9,7 +9,8 @@ from routers import (
     storage,
     request,
     release,
-    config
+    config,
+    business_rules
 )
 
 app = FastAPI(
@@ -37,8 +38,7 @@ app.include_router(storage.router)
 app.include_router(request.router)
 app.include_router(release.router)
 app.include_router(config.router)
-# app.include_router(slot.router)
-# app.include_router(dashboard.router)
+app.include_router(business_rules.router)
 
 
 @app.get("/health")

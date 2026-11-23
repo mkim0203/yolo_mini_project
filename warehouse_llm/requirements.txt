@@ -20,3 +20,6 @@ python-multipart
 
 # llm tools
 langchain.tools
+
+# http 요청
+httpx

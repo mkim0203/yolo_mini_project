@@ -263,4 +263,31 @@ class ReleaseRequest(Base):
         DateTime(timezone=True),
         nullable=True,
         server_default=text("CURRENT_TIMESTAMP")
-    )    
+    )
+
+class BusinessRules(Base):
+    __tablename__ = "business_rules"
+
+    __table_args__ = {
+        "comment": "창고 운영 관련 비즈니스 규칙"
+    }
+
+    rule_id = Column(
+        Integer,
+        primary_key=True,
+        autoincrement=True,
+        comment="규칙 ID"
+    )
+
+    rule_name = Column(String(100), nullable=False, comment="규칙 이름")
+    category = Column(String(30), nullable=False, comment="규칙 카테고리(BUSINESS, SYSTEM 등)")
+    target_tables = Column(JSONB, nullable=True, comment="규칙 적용 대상 테이블")
+    rule_content = Column(String(1024), nullable=True, comment="규칙 설명")
+    status = Column(String(20), nullable=True, comment="규칙 상태 (pending, approved, rejected)")
+    is_active = Column(CHAR(1), nullable=False, server_default=text("'Y'"), comment="규칙 활성화 여부 (Y/N)")
+
+    create_date = Column(
+        DateTime(timezone=True),
+        nullable=True,
+        server_default=text("CURRENT_TIMESTAMP")
+    )

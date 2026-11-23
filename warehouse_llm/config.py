@@ -21,6 +21,7 @@ class AppConfig:
     LLM_TEMPERATURE=os.getenv("LLM_TEMPERATURE")
     # RAG_PROMPT_VER=os.getenv("RAG_PROMPT_VER")
     
+    WAREHOUSE_API_URL=os.getenv("WAREHOUSE_API_URL")
     
 
     @classmethod

@@ -8,13 +8,23 @@ def get_db_schema(db):
 
     query = text("""
         SELECT
-            table_name,
-            column_name,
-            data_type,
-            is_nullable
-        FROM information_schema.columns
-        WHERE table_schema = 'public'
-        ORDER BY table_name, ordinal_position;
+            c.table_name,
+            c.column_name,
+            c.data_type,
+            c.is_nullable,
+            pg_catalog.obj_description(
+                (quote_ident(c.table_schema) || '.' ||
+                quote_ident(c.table_name))::regclass,
+                'pg_class'
+            ) AS table_comment,
+            pg_catalog.col_description(
+                (quote_ident(c.table_schema) || '.' ||
+                quote_ident(c.table_name))::regclass,
+                c.ordinal_position
+            ) AS column_comment
+        FROM information_schema.columns c
+        WHERE c.table_schema = 'public'
+        ORDER BY c.table_name, c.ordinal_position;
     """)
 
     rows = db.execute(query).mappings().all()
@@ -38,7 +48,7 @@ def get_db_table_relationships(db):
         JOIN pg_namespace n
             ON c.relnamespace = n.oid
         WHERE n.nspname = 'public'
-          AND con.contype IN ('p', 'f')
+            AND con.contype IN ('p', 'f')
         ORDER BY c.relname, con.contype;
     """)
 

@@ -102,8 +102,10 @@
             color: #374151;
             font-size: 14px;
             line-height: 1.6;
+            /*
             white-space: pre-wrap;
             overflow-wrap: anywhere;
+            */
         }
 
         .message.user .message-bubble {
@@ -227,6 +229,9 @@
             }
         }
     </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
 </head>
 
 <body data-page="qna">
@@ -322,7 +327,9 @@
         bubble.className = "message-bubble";
 
         // HTML 삽입을 방지하기 위해 textContent 사용
-        bubble.textContent = content;
+        //bubble.textContent = content;
+        const html = marked.parse(content);
+        bubble.innerHTML = DOMPurify.sanitize(html);
 
         messageContent.appendChild(name);
         messageContent.appendChild(bubble);

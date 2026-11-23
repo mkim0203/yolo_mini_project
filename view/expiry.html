@@ -254,6 +254,7 @@
 
 <div class="layout">
     <div id="sidebar-container"></div>
+    <div id="image-modal-container"></div>
 
     <main class="main">
 
@@ -498,7 +499,7 @@ async function selectSlot(slotId) {
                 <div class="detail-image">
                     <img
                         src="data:${data.image_type};base64,${data.image_data}"
-                        alt="상품 이미지"
+                        alt="상품 이미지" onclick="openImageModal(this.src)"
                     >
                 </div>
             `;

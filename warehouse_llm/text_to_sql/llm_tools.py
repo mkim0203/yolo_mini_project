@@ -74,12 +74,14 @@ def get_db_business_rules(db):
 
     result = [dict(row) for row in rows]
 
+    return result
+
 @tool
 def get_database_schema():
     """
     wharehouse 데이터베이스의 현재 테이블과 컬럼 구조를 조회합니다.
     """
-
+    print("get_database_schema 호출됨")
     db = SessionLocal()
 
     try:
@@ -99,7 +101,7 @@ def get_database_relationships():
     """
     wharehouse 데이터베이스의 현재 테이블 간 관계를 조회합니다.
     """
-
+    print("get_database_relationships 호출됨")
     db = SessionLocal()
 
     try:
@@ -145,7 +147,7 @@ def get_approved_rules():
     승인되고 활성화된 비즈니스 룰을 조회합니다.
     SQL 생성 및 데이터 분석 시 업무 규칙을 확인하기 위해 사용합니다.
     """
-
+    print("get_approved_rules 호출됨")
     db = SessionLocal()
 
     try:

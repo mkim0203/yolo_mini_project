@@ -8,7 +8,7 @@ from log import logger
 MAX_ROWS = 50         # LLM에게 넘길 최대 행 수
 MAX_CHARS = 12000     # LLM에게 넘길 최대 글자 수 (한글/영문 혼합 기준 약 4,000~6,000 토큰 수준)
 
-def get_db_schema(db):
+def get_db_schema(db = SessionLocal()):
 
     query = text("""
         SELECT
@@ -35,7 +35,7 @@ def get_db_schema(db):
 
     return [dict(row) for row in rows]
 
-def get_db_table_relationships(db):
+def get_db_table_relationships(db = SessionLocal()):
     query = text("""
         SELECT
             n.nspname AS schema_name,
@@ -60,7 +60,7 @@ def get_db_table_relationships(db):
 
     return [dict(row) for row in rows]
 
-def get_db_business_rules(db):
+def get_db_business_rules(db = SessionLocal()):
     query = text("""
         SELECT
             rule_id,

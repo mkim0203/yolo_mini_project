@@ -121,7 +121,7 @@ class StorageInfo(Base):
             name="uq_storage_slot_id"
         ),
         {
-            "comment": "창고 적재 정보"
+            "comment": "창고 현재 적재 정보. 적재 요청이 처리되어 적재칸에 현재 보관 중인 물품"
         }
     )
 
@@ -139,9 +139,9 @@ class StorageInfo(Base):
         comment="적재칸(slot) ID"
     )
 
-    request_id = Column(Integer, nullable=True, comment="적재 요청 ID")
+    request_id = Column(Integer, nullable=True, comment="적재 요청 ID (storage_request.request_id 참조)")
 
-    info = Column(String(100), nullable=True, comment="적재 요청 정보")
+    info = Column(String(100), nullable=True, comment="적재된 물품 정보 (적재 요청의 info가 복사됨)")
 
     image_type = Column(String(50), nullable=False, comment="이미지 유형")
 
@@ -163,7 +163,7 @@ class StorageHistory(Base):
     __tablename__ = "storage_history"
 
     __table_args__ = {
-        "comment": "창고 적재 이력 정보. 적재 완료된 정보만 기록"
+        "comment": "창고 적재 이력 정보. 적재 완료된 정보만 기록 (출고 완료 포함)"
     }
 
     # 기본키
@@ -180,13 +180,13 @@ class StorageHistory(Base):
 
     storage_id = Column(Integer, nullable=False, comment="적재 정보 ID")
 
-    info = Column(String(100), nullable=True, comment="적재 요청 정보")
+    info = Column(String(100), nullable=True, comment="적재 이력의 물품 정보")
 
     expiry_date = Column(DateTime(timezone=True), nullable=False, comment="유통기한 만료 날짜")
 
-    storage_request_id = Column(Integer, nullable=True, comment="적재 요청 ID")
+    storage_request_id = Column(Integer, nullable=True, comment="적재 요청 ID (storage_request.request_id 참조)")
 
-    release_request_id = Column(Integer, nullable=True, comment="출고 요청 ID")
+    release_request_id = Column(Integer, nullable=True, comment="출고 요청 ID (release_request.release_id 참조)")
 
     food_score = Column(Float, nullable=True, comment="음식(food/non_food) 점수. 0~1 사이의 값으로, 0에 가까울수록 음식일 확률이 높음")
     classification_result = Column(JSONB, nullable=True, comment="AI 분류 결과. 음식 유형 및 분류 점수 저장")
@@ -211,7 +211,7 @@ class StorageRequest(Base):
     __tablename__ = "storage_request"
 
     __table_args__ = {
-        "comment": "창고 적재 요청 정보"
+        "comment": "창고 적재 요청 정보. 물품을 창고에 넣기 위해 접수된 요청(적재 전 단계). 적재칸(slot) 정보는 없음"
     }
 
     request_id = Column(
@@ -221,7 +221,7 @@ class StorageRequest(Base):
         comment="적재 요청 ID"
     )
 
-    info = Column(String(100), nullable=True, comment="적재 요청 정보")
+    info = Column(String(100), nullable=True, comment="적재 요청 시 입력한 물품 정보")
 
     expiry_date = Column(DateTime(timezone=True), nullable=False, comment="유통기한 만료 날짜")
 
@@ -245,7 +245,7 @@ class ReleaseRequest(Base):
     __tablename__ = "release_request"
 
     __table_args__ = {
-        "comment": "창고 출고 요청 정보"
+        "comment": "창고 출고 요청 정보. 적재칸에 보관 중인 물품을 꺼내기 위한 요청. 적재 요청과 다름"
     }
 
     release_id = Column(
@@ -257,7 +257,7 @@ class ReleaseRequest(Base):
 
     slot_id = Column(Integer, nullable=False, comment="적재칸(slot) ID")
 
-    info = Column(String(100), nullable=True, comment="적재 요청시 입력한 정보")
+    info = Column(String(100), nullable=True, comment="참고 데이터. 적재당시 기입된 정보 (적재 요청의 info가 복사됨)")
 
     create_date = Column(
         DateTime(timezone=True),

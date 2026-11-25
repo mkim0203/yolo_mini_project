@@ -17,7 +17,7 @@ from text_to_sql.llm_tools import (
     get_approved_rules
 )
 from text_to_sql.request_api import request_rule_registration
-from text_to_sql.prompt import V1, V2, V3, V4
+from text_to_sql.prompt import V1, V2, V3, V4, V5
 
 llm = ChatOpenAI(
     model=APP_CONFIG.LLM_MODEL,
@@ -34,7 +34,7 @@ tools = [
     request_rule_registration
 ]
 
-system_prompt = V4
+system_prompt = V5
 
 # 1. 유지할 최근 메시지 개수 설정 (예: 최근 10개 메시지)
 KEEP_LAST_N = 10

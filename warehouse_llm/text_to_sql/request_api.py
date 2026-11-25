@@ -5,7 +5,6 @@ from config import APP_CONFIG
 WAREHOUSE_API_URL = APP_CONFIG.WAREHOUSE_API_URL
 
 
-@tool
 def request_rule_registration(
     rule_name: str,
     category: str,

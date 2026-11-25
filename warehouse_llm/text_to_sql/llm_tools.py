@@ -2,7 +2,11 @@ from langchain.tools import tool
 from sqlalchemy import text
 from database.connection import SessionLocal
 from text_to_sql.validator import validate_sql
+import json
+from log import logger
 
+MAX_ROWS = 50         # LLM에게 넘길 최대 행 수
+MAX_CHARS = 12000     # LLM에게 넘길 최대 글자 수 (한글/영문 혼합 기준 약 4,000~6,000 토큰 수준)
 
 def get_db_schema(db):
 
@@ -122,20 +126,47 @@ def execute_readonly_sql(sql_query: str):
 
     valid = validate_sql(sql_query);
     if not valid:
-        raise ValueError("허용되지 않은 SQL 쿼리입니다. SELECT 문만 허용됩니다.")
+        return "허용되지 않은 SQL 쿼리입니다. SELECT 문만 허용됩니다."
 
     print("SQL 쿼리:", sql_query)
     db = SessionLocal()
 
     try:
         # SQL 쿼리 실행
-        result = db.execute(text(sql_query)).mappings().all()
+        rows = db.execute(text(sql_query)).mappings().all()
 
-        return [dict(row) for row in result]
+
+        total_count = len(rows)
+
+        logger.info(total_count)
+        
+        if total_count == 0:
+            return "조회된 데이터가 없습니다."
+
+        # 1. 행(Row) 개수 제한
+        is_truncated = False
+        if total_count > MAX_ROWS:
+            rows = rows[:MAX_ROWS]
+            is_truncated = True
+
+        # 2. 결과 직렬화 및 전체 글자 수(토큰 폭발 방지) 제한
+        result_str = json.dumps(rows, ensure_ascii=False, default=str)
+        
+        if len(result_str) > MAX_CHARS:
+            result_str = result_str[:MAX_CHARS] + "...(데이터 길이 초과로 일부 생략됨)"
+            is_truncated = True
+
+        # 3. 잘렸을 경우 LLM이 인지하고 사용자에게 안내할 수 있도록 메타 정보 추가
+        if is_truncated:
+            notice = f"\n\n[시스템 안내: 전체 {total_count}건 중 토큰 제한으로 인해 상위 일부({len(rows)}건)만 표시되었습니다. 전체 통계가 필요하면 COUNT, SUM, GROUP BY 등 집계 쿼리를 사용하세요.]"
+            return result_str + notice
+
+        return result_str
 
     except Exception as e:
         print("DB 조회 오류:", type(e).__name__, str(e))
-        raise
+        # 오류 발생시 오류 메시지 llm에 전달하도록함.
+        return f"DB 조회 오류: {type(e).__name__}, {str(e)}"
 
     finally:
         db.close()        

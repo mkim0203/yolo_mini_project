@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 
 from text_to_sql.agent import ask_agent
+from log import logger
 
 router = APIRouter(
     prefix="",
@@ -23,9 +24,10 @@ def ask(base_request: Request, request: AskRequest):
 
     try:
         ip=base_request.client.host
-
+        logger.info(f"{ip} => {request.question}")
         answer = ask_agent(request.question, ip)
 
+        logger.info(answer)
         return AskResponse(
             question=request.question,
             answer=answer

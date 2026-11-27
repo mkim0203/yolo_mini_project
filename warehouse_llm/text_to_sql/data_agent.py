@@ -111,7 +111,7 @@ def format_schema(rows: list[dict]) -> str:
     return "\n".join(h + "\n" + "\n".join(cols) for h, cols in tables.items())
 
 
-def run_data_agent(question: str, session_id: str, rules: list[dict], schema_rows: list[dict]) -> str:
+def run_data_agent(question: str, session_id: str, rules: list[dict], schema_rows: list[dict], config=None) -> str:
     agent = create_agent(
         model=llm,
         tools=tools,                     # 조회 Tool만. 등록/룰조회/스키마 Tool 제거
@@ -119,8 +119,9 @@ def run_data_agent(question: str, session_id: str, rules: list[dict], schema_row
         checkpointer=checkpointer,                        # 기존 checkpointer 재사용 (모듈 전역)
         middleware=[trim_old_messages]  # 2. 미들웨어 연결
     )
+    cfg = {"configurable": {"thread_id": session_id}, **(config or {})}
     result = agent.invoke(
-        {"messages": [{"role": "user", "content": question}]},
-        {"configurable": {"thread_id": session_id}},
+        {"messages": [{"role": "user", "content": question}]}, cfg,
+        #{"configurable": {"thread_id": session_id}},
     )
     return result["messages"][-1].content

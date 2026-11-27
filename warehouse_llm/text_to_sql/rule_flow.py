@@ -33,10 +33,10 @@ class RuleDraft(BaseModel):
     rule_content: str = Field(description="AI가 이후 SQL 작성/답변 가공 시 따를 구체적 지침. SELECT 조회 범위 내에서만 작성")
 
 
-def classify_intent(question: str, has_pending: bool) -> str:
+def classify_intent(question: str, has_pending: bool, config=None) -> str:
     try:
         r = small_llm.with_structured_output(Intent).invoke(
-            f"대기 중인 룰 제안 존재 여부: {has_pending}\n사용자 메시지: {question}"
+            f"대기 중인 룰 제안 존재 여부: {has_pending}\n사용자 메시지: {question}", config=config
         )
         return r.intent
     except Exception:
